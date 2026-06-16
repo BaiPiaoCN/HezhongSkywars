@@ -1,0 +1,3 @@
+name: HezhongSkywars
+version: '${project.version}'
+main: com.hezhong.hezhongskywars.HezhongSkywars

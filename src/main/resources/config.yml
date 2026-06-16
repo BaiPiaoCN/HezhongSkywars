@@ -1,0 +1,7 @@
+### Hezhong Skywars 配置文件
+### 一个新的单端空岛战争插件
+### 作者 tjshawa
+
+basicInfo:
+  # 基本信息配置
+  serverIp: "Hezhong Technology" # 显示用的服务器地址，可填写字符串，解析颜色代码
