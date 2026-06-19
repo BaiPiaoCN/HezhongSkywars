@@ -1,0 +1,7 @@
+### Hezhong Skywars 职业设置
+normalKit: # 职业名称
+  coins: 0 # 需要耗费的硬币数，0即代表默认拥有
+  permission: "" # 需要的权限。空即代表无需权限
+  items:
+    - "STONE_SWORD : 1 : SHARPNESS : 1"
+    - "DIRT : 32"

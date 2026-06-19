@@ -1,14 +1,17 @@
 package com.hezhong.hezhongskywars;
 
+import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class HezhongSkywars extends JavaPlugin {
+import java.util.logging.Logger;
 
+public final class HezhongSkywarsLoader extends JavaPlugin {
 
 
     @Override
     public void onEnable() {
         // Plugin startup logic
+
 
     }
 

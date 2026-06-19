@@ -18,6 +18,7 @@ public class ConfigManager {
     private YamlConfiguration chestsConfig;
     private YamlConfiguration mapsConfig;
     private YamlConfiguration ranksConfig;
+    private YamlConfiguration kitsConfig;
     public ConfigManager(Plugin serverPlugin) {
         this.serverPlugin = serverPlugin;
     }
@@ -39,12 +40,17 @@ public class ConfigManager {
         if (!ranksConfigFile.exists()) {
             serverPlugin.saveResource("ranks.yml", false);
         }
+        File kitsConfigFile = new File(serverPlugin.getDataFolder(), "kits.yml");
+        if (!kitsConfigFile.exists()) {
+            serverPlugin.saveResource("kits.yml", false);
+        }
 
         // 载入到Yaml配置对象中
         mainConfig = YamlConfiguration.loadConfiguration(mainConfigFile);
         chestsConfig = YamlConfiguration.loadConfiguration(chestsConfigFile);
         mapsConfig = YamlConfiguration.loadConfiguration(mapsConfigFile);
         ranksConfig = YamlConfiguration.loadConfiguration(ranksConfigFile);
+        kitsConfig = YamlConfiguration.loadConfiguration(kitsConfigFile);
 
         resolveConfigValues();
     }

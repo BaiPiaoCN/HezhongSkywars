@@ -1,0 +1,20 @@
+### Hezhong Skywars 地图设置
+example_map: # 此处填写地图名
+  world: "skywars_1" # 此处填写Minecraft世界名
+  spawns: # 玩家出生点
+    1:
+      x: 0
+      y: 100
+      z: 0
+  chests:
+    1:
+      x: 0
+      y: 50
+      z: 0
+      type: "normal"
+    2:
+      x: 0
+      y: 50
+      z: 0
+      type: "hyper"
+
