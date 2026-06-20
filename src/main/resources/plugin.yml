@@ -1,3 +1,7 @@
 name: HezhongSkywars
 version: '${project.version}'
 main: com.hezhong.hezhongskywars.HezhongSkywarsLoader
+commands:
+   hsw:
+      description: Hezhong Skywars Main Command
+      usage: /<command>

@@ -11,6 +11,7 @@ public final class HezhongSkywarsLoader extends JavaPlugin {
     @Override
     public void onEnable() {
         // Plugin startup logic
+        HezhongSkywars.INSTANCE.start(this);
 
 
     }
@@ -18,5 +19,6 @@ public final class HezhongSkywarsLoader extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        HezhongSkywars.INSTANCE.stop();
     }
 }

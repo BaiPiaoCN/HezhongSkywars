@@ -1,10 +1,20 @@
 package com.hezhong.hezhongskywars.config;
 
+import com.cryptomorin.xseries.XEnchantment;
+import com.cryptomorin.xseries.XMaterial;
+import com.cryptomorin.xseries.XPotion;
+import com.hezhong.hezhongskywars.HezhongSkywars;
 import com.hezhong.hezhongskywars.utils.ColorT;
+import com.hezhong.hezhongskywars.utils.MathUtil;
+import com.hezhong.hezhongskywars.utils.type.ChestItem;
+import com.hezhong.hezhongskywars.utils.type.Pair;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
 
 import java.io.File;
+import java.util.*;
 
 public class ConfigManager {
     private Plugin serverPlugin;
@@ -13,6 +23,11 @@ public class ConfigManager {
     // chests.yml 箱子配置
     // maps.yml 地图配置
     // ranks.yml 等级配置
+    private File mainConfigFile;
+    private File chestsConfigFile;
+    private File mapsConfigFile;
+    private File ranksConfigFile;
+    private File kitsConfigFile;
 
     private YamlConfiguration mainConfig;
     private YamlConfiguration chestsConfig;
@@ -24,23 +39,23 @@ public class ConfigManager {
     }
     public void loadConfig() {
         // 从jar释放文件
-        File mainConfigFile = new File(serverPlugin.getDataFolder(), "config.yml");
+        mainConfigFile = new File(serverPlugin.getDataFolder(), "config.yml");
         if (!mainConfigFile.exists()) {
             serverPlugin.saveResource("config.yml", false); // 不覆盖
         }
-        File chestsConfigFile = new File(serverPlugin.getDataFolder(), "chests.yml");
+        chestsConfigFile = new File(serverPlugin.getDataFolder(), "chests.yml");
         if (!chestsConfigFile.exists()) {
             serverPlugin.saveResource("chests.yml", false);
         }
-        File mapsConfigFile = new File(serverPlugin.getDataFolder(), "maps.yml");
+        mapsConfigFile = new File(serverPlugin.getDataFolder(), "maps.yml");
         if (!mapsConfigFile.exists()) {
             serverPlugin.saveResource("maps.yml", false);
         }
-        File ranksConfigFile = new File(serverPlugin.getDataFolder(), "ranks.yml");
+        ranksConfigFile = new File(serverPlugin.getDataFolder(), "ranks.yml");
         if (!ranksConfigFile.exists()) {
             serverPlugin.saveResource("ranks.yml", false);
         }
-        File kitsConfigFile = new File(serverPlugin.getDataFolder(), "kits.yml");
+        kitsConfigFile = new File(serverPlugin.getDataFolder(), "kits.yml");
         if (!kitsConfigFile.exists()) {
             serverPlugin.saveResource("kits.yml", false);
         }
@@ -55,8 +70,187 @@ public class ConfigManager {
         resolveConfigValues();
     }
 
+    public void reload() {
+        mainConfig = YamlConfiguration.loadConfiguration(mainConfigFile);
+        chestsConfig = YamlConfiguration.loadConfiguration(chestsConfigFile);
+        mapsConfig = YamlConfiguration.loadConfiguration(mapsConfigFile);
+        ranksConfig = YamlConfiguration.loadConfiguration(ranksConfigFile);
+        kitsConfig = YamlConfiguration.loadConfiguration(kitsConfigFile);
+
+        resolveConfigValues();
+    }
+
     private void resolveConfigValues() {
-        // 负责真正读取配置信息
-        ConfigValues.serverIp = ColorT.t(mainConfig.getString("basicInfo.serverIp"));
+        try {
+            // 负责真正读取配置信息
+            ConfigValues.serverIp = ColorT.t(mainConfig.getString("basicInfo.serverIp"));
+            ConfigValues.lobbyWorld = mainConfig.getString("basicInfo.lobbyWorld");
+
+            // 箱子读取
+            // 单独的try catch
+            try {
+                ConfigurationSection chestsCS = chestsConfig.getConfigurationSection(""); // 根目录
+                if (chestsCS != null) {
+                    Set<String> chestTypes = chestsCS.getKeys(false);
+                    for (String type : chestTypes) {
+                        // 格式："权重 : 物品 : 数量 : [附魔，用;分开] : [附魔等级，用;分开，一一对应] : [耐久/药水数据，用;分开] : [药水等级，用;分开，一一对应]
+                        // 共7项，分别对应rawItem的0~6
+                        int minFilled = chestsConfig.getInt(type + ".minFilled");
+                        int maxFilled = chestsConfig.getInt(type + ".maxFilled");
+                        List<String> chestItems = chestsConfig.getStringList(type + ".items");
+                        Map<ChestItem, Integer> finalItems = new HashMap<>();
+                        for (String chestItem : chestItems) {
+                            chestItem = chestItem.trim();
+                            String[] rawItem = chestItem.split(":");
+                            if (rawItem.length < 3) {
+                                HezhongSkywars.INSTANCE.getLogger().warning("Found a chest config with invalid item config, raw = " + chestItem);
+                                continue;
+                            }
+                            int weight = Integer.parseInt(rawItem[0]);
+                            XMaterial mat = XMaterial.matchXMaterial(rawItem[1]).get();
+                            int number = Integer.parseInt(rawItem[2]);
+                            List<Pair<XEnchantment, Integer>> enchantments = new ArrayList<>();
+                            List<Pair<XPotion, Integer>> potions = new ArrayList<>();
+                            if (rawItem.length >= 5) {
+                                String rawEnchantments[] = rawItem[3].split(";");
+                                String rawEnchantmentsLevel[] = rawItem[4].split(";");
+                                for (int e = 0; e < rawEnchantmentsLevel.length; e++) {
+                                    String enchantment = rawEnchantments[e].toUpperCase();
+                                    int level = Integer.parseInt(rawEnchantmentsLevel[e]);
+                                    enchantments.add(new Pair<>(XEnchantment.of(enchantment).get(), level));
+                                }
+                            }
+
+                            int durability = -1;
+                            if (rawItem.length >= 6) {
+                                String rawData = rawItem[5];
+                                if (MathUtil.isNumeric(rawData)) {
+                                    durability = Integer.parseInt(rawData);
+                                } else {
+                                    if (rawItem.length >= 7) { // rawItem[6]包含药水等级数据
+                                        String rawPotions[] = rawData.split(";");
+                                        String rawPotionLevels[] = rawItem[6].split(";");
+                                        for (int p = 0; p < rawPotions.length; p++) {
+                                            String potion = rawPotions[p].toUpperCase();
+                                            int level = Integer.parseInt(rawPotionLevels[p]);
+                                            XPotion xP = XPotion.valueOf(potion);
+                                            potions.add(new Pair<>(xP, level));
+                                        }
+
+                                    }
+                                }
+                            }
+                            ChestItem item = new ChestItem(mat, number, durability, enchantments, potions);
+                            finalItems.put(item, weight);
+                        }
+                        // 物品解析完了，存进去
+                        ChestConfig finalChestConfig = new ChestConfig(type, minFilled, maxFilled, finalItems);
+                        ConfigValues.chestConfigs.put(type, finalChestConfig);
+
+                    }
+                }
+            } catch (Exception e) {
+                HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to load chests config.");
+                e.printStackTrace();
+            }
+            // 读取地图配置
+            try {
+                ConfigurationSection mapsCS = mapsConfig.getConfigurationSection("");
+                if (mapsCS != null) {
+                    Set<String> mapNames = mapsCS.getKeys(false);
+                    for (String mapName : mapNames) {
+                        // mapName是游戏内地图名，不是世界名！
+                        String originalWorldName = mapsConfig.getString(mapName + ".original_world");
+                        String copyWorldName = mapsConfig.getString(mapName + ".copy_world");
+                        // 出生点选段
+                        ConfigurationSection mapSpawnsCS = mapsConfig.getConfigurationSection(mapName + ".spawns");
+                        Set<String> spawnsIds = mapSpawnsCS.getKeys(false);
+
+                        List<Vector> spawns = new ArrayList<>();
+                        Map<Vector, String> chests = new HashMap<>();
+                        for (String spawnId : spawnsIds) {
+                            double spawnX = mapsConfig.getDouble(mapName + ".spawns." + spawnId + ".x");
+                            double spawnY = mapsConfig.getDouble(mapName + ".spawns." + spawnId + ".y");
+                            double spawnZ = mapsConfig.getDouble(mapName + ".spawns." + spawnId + ".z");
+                            spawns.add(new Vector(spawnX, spawnY, spawnZ));
+                        }
+                        // 箱子位置选段
+                        ConfigurationSection chestLocationsCS = mapsConfig.getConfigurationSection(mapName + ".chests");
+                        Set<String> chestIds = chestLocationsCS.getKeys(false);
+                        for (String chestId : chestIds) {
+                            double chestX = mapsConfig.getDouble(mapName + ".chests." + chestId + ".x");
+                            double chestY = mapsConfig.getDouble(mapName + ".chests." + chestId + ".y");
+                            double chestZ = mapsConfig.getDouble(mapName + ".chests." + chestId + ".z");
+                            String type = mapsConfig.getString(mapName + ".chests." + chestId + ".type");
+                            chests.put(new Vector(chestX, chestY, chestZ), type);
+                        }
+                        MapConfig finalMapConfig = new MapConfig(originalWorldName, copyWorldName, spawns, chests);
+                        ConfigValues.mapConfigs.put(mapName, finalMapConfig);
+                    }
+                }
+            } catch (Exception e) {
+                HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to load maps config.");
+            }
+        } catch (Exception e) {
+            HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to load config file.");
+            e.printStackTrace();
+        }
+    }
+
+    public void createMap(String mapName, String originalMap, String copyMap) {
+        // 是否已存在？
+        try {
+            if (mapsConfig.contains(mapName, true)) {
+                return;
+            }
+            mapsConfig.createSection(mapName);
+            mapsConfig.set(mapName + ".original_world", originalMap);
+            mapsConfig.set(mapName + ".copy_world", copyMap);
+            mapsConfig.createSection(mapName + ".spawns");
+            mapsConfig.createSection(mapName + ".chests");
+            mapsConfig.save(mapsConfigFile);
+
+            HezhongSkywars.INSTANCE.getLogger().info("HSW Created Map " + mapName + ".");
+            reload();
+        } catch (Exception e) {
+            HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to create map config.");
+            e.printStackTrace();
+        }
+    }
+
+    public void setUpMap(String mapName, List<Vector> spawns, Map<Vector, String> chests) {
+        // 检查存在
+        try {
+            if (mapsConfig.contains(mapName, true)) {
+                // spawns，chests都是完整的，所以清空这些选段
+                mapsConfig.set(mapName + ".spawns", null);
+                mapsConfig.set(mapName + ".chests", null);
+                ConfigurationSection spawnsCS = mapsConfig.createSection(mapName + ".spawns");
+                ConfigurationSection chestsCS = mapsConfig.createSection(mapName + ".chests");
+                for (int i = 1; i <= spawns.size(); i++) { // 出生点
+                    // 使用set会自动创建选段，我不需要额外搞
+                    mapsConfig.set(mapName + ".spawns." + i + ".x", spawns.get(i - 1).getX());
+                    mapsConfig.set(mapName + ".spawns." + i + ".y", spawns.get(i - 1).getY());
+                    mapsConfig.set(mapName + ".spawns." + i + ".z", spawns.get(i - 1).getZ());
+                }
+                int i = 1;
+                for (Map.Entry<Vector, String> entry : chests.entrySet()) { // 箱子
+                    mapsConfig.set(mapName + ".chests." + i + ".x", entry.getKey().getX());
+                    mapsConfig.set(mapName + ".chests." + i + ".y", entry.getKey().getY());
+                    mapsConfig.set(mapName + ".chests." + i + ".z", entry.getKey().getZ());
+                    mapsConfig.set(mapName + ".chests." + i + ".type", entry.getValue());
+                    i++;
+                }
+                // 保存配置到本地
+                mapsConfig.save(mapsConfigFile);
+
+                HezhongSkywars.INSTANCE.getLogger().info("HSW Modified Map " + mapName + ".");
+                reload();
+            }
+        } catch (Exception e) {
+            HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to modify map config.");
+            e.printStackTrace();
+        }
+
     }
 }

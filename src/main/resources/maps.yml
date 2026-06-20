@@ -1,6 +1,10 @@
 ### Hezhong Skywars 地图设置
 example_map: # 此处填写地图名
-  world: "skywars_1" # 此处填写Minecraft世界名
+  original_world: "skywars_1" # 此处填写原始世界名。世界存放在./plugins/HezhongSkywars/maps下。
+  copy_world: "skywars_1_runtime" # 插件运行时，复制的世界名。此世界运行在服务器中。
+  min_players_to_autostart: 4 # 最小自动启动玩家数
+  max_players: 12 # 最大玩家数
+  ok: false # 此地图是否可用
   spawns: # 玩家出生点
     1:
       x: 0
@@ -12,9 +16,4 @@ example_map: # 此处填写地图名
       y: 50
       z: 0
       type: "normal"
-    2:
-      x: 0
-      y: 50
-      z: 0
-      type: "hyper"
 

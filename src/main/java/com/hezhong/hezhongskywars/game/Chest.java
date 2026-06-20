@@ -9,18 +9,16 @@ import java.util.List;
 import java.util.Map;
 
 public class Chest {
+    // 每个箱子都有一个Type，每次游戏加载时，去加载配置中对应type的箱子
     private final String mapName;
     // 最小填充量和最大填充量
     private final int minFilled;
     private final int maxFilled;
-    // id只是拿来标记的
-    private final int chestId;
     // XMaterial包装 箱子物品和概率
     private final Map<ChestItem, Integer> itemProbability; // K 物品 V 权重
     private int weightTotal; // 权重总和
-    public Chest(String mapName, int chestId, int minFilled, int maxFilled) {
+    public Chest(String mapName, int minFilled, int maxFilled) {
         this.mapName = mapName;
-        this.chestId = chestId;
         this.itemProbability = new HashMap<>();
         this.minFilled = minFilled;
         this.maxFilled = maxFilled;
@@ -39,6 +37,7 @@ public class Chest {
         int generated = 0;
         List<ChestItem> items = new ArrayList<>();
         int toGenerate = RandomUtil.randomInt(minFilled, maxFilled);
+        // 能跑就行
         for (int i = 0; i < toGenerate; i++) {
             int randomN = RandomUtil.randomInt(1, weightTotal);
             int tW = 0;
