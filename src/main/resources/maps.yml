@@ -4,6 +4,7 @@ example_map: # 此处填写地图名
   copy_world: "skywars_1_runtime" # 插件运行时，复制的世界名。此世界运行在服务器中。
   min_players_to_autostart: 4 # 最小自动启动玩家数
   max_players: 12 # 最大玩家数
+  countdown: 30 # 开启游戏的倒计时
   ok: false # 此地图是否可用
   spawns: # 玩家出生点
     1:
@@ -16,4 +17,8 @@ example_map: # 此处填写地图名
       y: 50
       z: 0
       type: "normal"
+    events:
+      1:
+        time: 300 # 秒。游戏开始后，多久触发事件？
+        type: "resetChest" # 事件类型。resetChest或stopGame
 

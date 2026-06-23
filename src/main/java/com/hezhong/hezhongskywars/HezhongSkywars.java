@@ -3,7 +3,7 @@ package com.hezhong.hezhongskywars;
 import com.hezhong.hezhongskywars.command.CommandProcessor;
 import com.hezhong.hezhongskywars.config.ConfigManager;
 import com.hezhong.hezhongskywars.game.GameListener;
-import com.hezhong.hezhongskywars.game.gui.GUIListener;
+// import com.hezhong.hezhongskywars.game.gui.GUIListener;
 import com.hezhong.hezhongskywars.listeners.JoinQuitListener;
 import com.hezhong.hezhongskywars.manager.GameManager;
 import com.hezhong.hezhongskywars.manager.ListenerManager;
@@ -43,13 +43,16 @@ public enum HezhongSkywars {
             ListenerManager.joinQuitListener = new JoinQuitListener();
         if (ListenerManager.setupListener == null)
             ListenerManager.setupListener = new SetupListener();
+        /*
         if (ListenerManager.guiListener == null)
             ListenerManager.guiListener = new GUIListener();
+
+         */
 
         plugin.getServer().getPluginManager().registerEvents(ListenerManager.gameListener, plugin);
         plugin.getServer().getPluginManager().registerEvents(ListenerManager.joinQuitListener, plugin);
         plugin.getServer().getPluginManager().registerEvents(ListenerManager.setupListener, plugin);
-        plugin.getServer().getPluginManager().registerEvents(ListenerManager.guiListener, plugin);
+        // plugin.getServer().getPluginManager().registerEvents(ListenerManager.guiListener, plugin);
 
         // 命令
         plugin.getCommand("hsw").setExecutor(new CommandProcessor());

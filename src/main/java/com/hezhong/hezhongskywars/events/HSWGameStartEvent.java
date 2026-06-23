@@ -1,10 +1,12 @@
 package com.hezhong.hezhongskywars.events;
 
 
+import lombok.Getter;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 public class HSWGameStartEvent extends Event {
+    @Getter
     private final String mapName;
 
     public HSWGameStartEvent(String mapName) {

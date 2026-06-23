@@ -4,6 +4,8 @@ import com.hezhong.hezhongskywars.HezhongSkywars;
 import com.hezhong.hezhongskywars.config.ConfigManager;
 import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.config.MapConfig;
+import com.hezhong.hezhongskywars.game.Game;
+import com.hezhong.hezhongskywars.game.GameStatus;
 import com.hezhong.hezhongskywars.manager.SwPlayerManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.utils.ColorT;
@@ -42,6 +44,10 @@ public class CommandProcessor implements CommandExecutor {
         if (Objects.equals(args[0], "modify")) {
             processModify(cs, args);
         }
+        if (Objects.equals(args[0], "listMaps")) {
+            processListMaps(cs);
+        }
+
         if (Objects.equals(args[0], "play")) {
             processPlay(cs, args);
         }
@@ -59,6 +65,7 @@ public class CommandProcessor implements CommandExecutor {
         cs.sendMessage(ColorT.t("&e /hsw ver &a显示插件版本和信息"));
         cs.sendMessage(ColorT.t("&e /hsw create <mapName> <originalWorldName> <copyWorldName> &a新建新地图"));
         cs.sendMessage(ColorT.t("&e /hsw modify <mapName> [options] [args] &a修改地图配置"));
+        cs.sendMessage(ColorT.t("&e /hsw listMaps &a列出地图"));
         cs.sendMessage(ColorT.t("&e /hsw play <mapName> &a游玩一个地图"));
         cs.sendMessage(ColorT.t("&e /hsw start &a启动你正在游玩的地图"));
         if (cs instanceof Player) {
@@ -81,7 +88,29 @@ public class CommandProcessor implements CommandExecutor {
     }
     private void processVersion(CommandSender cs) {
         cs.sendMessage(ColorT.t("&b&lHezhong Skywars &eBy Hezhong Technology <== tjshawa"));
-        cs.sendMessage(ColorT.t("&b版本 " + HezhongSkywars.INSTANCE.getPlugin().getDescription().getVersion()));
+        cs.sendMessage(ColorT.t("&bHSW 版本 " + HezhongSkywars.INSTANCE.getPlugin().getDescription().getVersion()));
+    }
+    private void processListMaps(CommandSender cs) {
+        cs.sendMessage(ColorT.t("&a当前地图"));
+        for (Map.Entry<String, MapConfig> entry : ConfigValues.mapConfigs.entrySet()) {
+            String mapName = entry.getKey();
+            MapConfig mc = entry.getValue();
+            // 读取基本配置
+            String copyWorldName = mc.getCopyWorld();
+            int maxPlayers = mc.getMaxPlayers();
+            boolean ok = mc.isOk();
+            World world = Bukkit.getWorld(copyWorldName);
+            cs.sendMessage(ColorT.t(String.format("&b地图 %s%s &e最大玩家&a%s %s", ok ? "&a√" : "&c×", mapName, maxPlayers, (world == null) ? "&c世界不存在" : "&a世界存在")));
+        }
+    }
+    private void processListGames(CommandSender cs) {
+        cs.sendMessage(ColorT.t("&a游戏"));
+        for (Map.Entry<String, Game> entry : HezhongSkywars.INSTANCE.getGameManager().getGames().entrySet()) {
+            String mapName = entry.getKey();
+            Game g = entry.getValue();
+            GameStatus status = g.getGameStatus();
+
+        }
     }
     private void processCreate(CommandSender cs, String[] args) {
         if (args.length < 4) {
@@ -145,7 +174,7 @@ public class CommandProcessor implements CommandExecutor {
             pp.teleport(new Location(bukkitWorld, 0, 100, 0));
             return;
         }
-        if (args.length >= 3) {
+        if (args.length >= 3 && sp.isSettingUpMap()) {
             if (!Objects.equals(pp.getWorld().getName(), ConfigValues.mapConfigs.get(sp.getSetUpMapName()).getCopyWorld())) {
                 pp.sendMessage(ColorT.t("&c你所在的世界不是你正在修改的世界，你在 " + pp.getWorld().getName() + ", 修改 " + sp.getSetUpMapName()));
                 return;
@@ -165,21 +194,29 @@ public class CommandProcessor implements CommandExecutor {
                     return;
                 }
                 String type = args[3];
-                if (sp.getSetupMapStatus().getControllingBlock() instanceof Chest) {
-                    // Bukkit chest
-                    // 设置一下
-                    Vector pos = sp.getSetupMapStatus().getControllingBlock().getLocation().toVector();
-                    sp.getSetupMapStatus().getChests().put(pos, type);
-                    pp.sendMessage(ColorT.t("&a设置箱子 X=" + pos.getX() + " Y=" + pos.getY() + " Z=" + pos.getZ()));
+                if (sp.getSetupMapStatus().getControllingBlock() != null) {
+                    if (sp.getSetupMapStatus().getControllingBlock().getState() instanceof Chest) {
+                        // Bukkit chest
+                        // 设置一下
+                        Vector pos = sp.getSetupMapStatus().getControllingBlock().getLocation().toVector();
+                        sp.getSetupMapStatus().getChests().put(pos, type);
+                        pp.sendMessage(ColorT.t("&a设置箱子 X=" + pos.getX() + " Y=" + pos.getY() + " Z=" + pos.getZ()));
+                    } else {
+                        pp.sendMessage(ColorT.t("&c你选择的方块不是箱子，是 &e" + sp.getSetupMapStatus().getControllingBlock().getType()));
+                    }
                 }
 
             } else if (Objects.equals(opt, "rmChest")) {
-                if (sp.getSetupMapStatus().getControllingBlock() instanceof Chest) {
-                    // Bukkit chest
-                    // 设置一下
-                    Vector pos = sp.getSetupMapStatus().getControllingBlock().getLocation().toVector();
-                    sp.getSetupMapStatus().getChests().remove(pos);
-                    pp.sendMessage(ColorT.t("&a删除箱子 X=" + pos.getX() + " Y=" + pos.getY() + " Z=" + pos.getZ()));
+                if (sp.getSetupMapStatus().getControllingBlock() != null) {
+                    if (sp.getSetupMapStatus().getControllingBlock().getState() instanceof Chest) {
+                        // Bukkit chest
+                        // 设置一下
+                        Vector pos = sp.getSetupMapStatus().getControllingBlock().getLocation().toVector();
+                        sp.getSetupMapStatus().getChests().remove(pos);
+                        pp.sendMessage(ColorT.t("&a删除箱子 X=" + pos.getX() + " Y=" + pos.getY() + " Z=" + pos.getZ()));
+                    } else {
+                        pp.sendMessage(ColorT.t("&c你选择的方块不是箱子，是 &e" + sp.getSetupMapStatus().getControllingBlock().getType()));
+                    }
                 }
 
             } else if (Objects.equals(opt, "listChest")) {
@@ -206,6 +243,7 @@ public class CommandProcessor implements CommandExecutor {
                 try {
                     id = Integer.parseInt(idStr);
                     sp.getSetupMapStatus().getSpawns().remove(id - 1);
+                    pp.sendMessage(ColorT.t("&a删除出生点 ID=" + id));
                 } catch (NumberFormatException e) {
                     pp.sendMessage(ColorT.t("&cID不是数字！"));
                     return;

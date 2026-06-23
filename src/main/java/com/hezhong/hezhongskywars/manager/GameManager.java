@@ -8,6 +8,7 @@ import com.hezhong.hezhongskywars.game.Chest;
 import com.hezhong.hezhongskywars.game.Game;
 import com.hezhong.hezhongskywars.utils.ColorT;
 import com.hezhong.hezhongskywars.utils.type.ChestItem;
+import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -21,52 +22,47 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class GameManager {
     private final Plugin serverPlugin;
+    @Getter
     private final Map<String, Game> games = new HashMap<>();
     // K:V => 地图名 : 游戏实例
     public GameManager(Plugin serverPlugin) {
         this.serverPlugin = serverPlugin;
     }
 
-    // Config没搞好，这个等会
-    /*
-    public void addGame(String mapName, World world) {
-        games.put(mapName, new Game(mapName, world));
-    }
-
-     */
 
     // 此代码需要异步执行 Async
     public void init() {
         // 必须主线程运行
         // 必须确保配置已加载
-        CompletableFuture<Boolean> future = new CompletableFuture<>();
         Bukkit.getScheduler().runTaskAsynchronously(serverPlugin, () -> {
             try {
                 for (Map.Entry<String, MapConfig> entry : ConfigValues.mapConfigs.entrySet()) {
                     // 遍历，读取世界
                     resetGame(entry.getKey());
                 }
-                future.complete(true);
             } catch (Exception e) {
                 HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to init games");
                 e.printStackTrace();
-                future.complete(false);
             }
         });
-        future.join();
 
     }
     public void resetGame(String mapName) throws FileNotFoundException {
         try {
         // 主线程执行会导致死锁主线程，绝对不能主线程执行
-        if (Bukkit.isPrimaryThread()) return;
+        if (Bukkit.isPrimaryThread()) {
+            HezhongSkywars.INSTANCE.getLogger().warning("HSW resetGame called from main thread!");
+            return;
+        }
         if (ConfigValues.mapConfigs.containsKey(mapName)) {
             MapConfig mc = ConfigValues.mapConfigs.get(mapName); // 配置
             // 去寻找原世界
@@ -88,6 +84,10 @@ public class GameManager {
             Bukkit.getScheduler().runTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
                 WorldCreator worldCreator = new WorldCreator(mc.getCopyWorld());
                 World w = worldCreator.createWorld();
+                if (w != null) {
+                    // 禁止自然刷怪
+                    w.setGameRuleValue("doMobSpawning", "false");
+                }
                 futureLoad.complete(w);
             });
             // 等着
@@ -107,7 +107,11 @@ public class GameManager {
                     }
                     chests.put(new Location(w, entry.getKey().getX(), entry.getKey().getY(), entry.getKey().getZ()), chest);
                 }
-                games.put(mapName, new Game(mapName, w, chests));
+                List<Location> spawns = new ArrayList<>();
+                for (Vector v : mc.getSpawns()) {
+                    spawns.add(new Location(w, v.getX(), v.getY(), v.getZ()));
+                }
+                games.put(mapName, new Game(mapName, w, chests, spawns, mc.getGameEvents()));
             }
             return;
 

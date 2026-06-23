@@ -20,13 +20,13 @@ public class SwPlayer {
     private Scoreboard scoreBoard;
     private boolean settingUpMap = false;
     private String setUpMapName = ""; // 是游戏地图名，不是MC服务器世界名。取世界名需要读配置！
-    private SwPlayerSetupMapStatus setupMapStatus;
+    private SwPlayerSetupMapStatus setupMapStatus = new SwPlayerSetupMapStatus();
+    private SwPlayerGameStatus gameStatus = new SwPlayerGameStatus();
 
 
     public SwPlayer(Player player) {
         this.player = player;
         stats = new SwPlayerStatistics();
-        setupMapStatus = new SwPlayerSetupMapStatus();
         scoreBoard = Bukkit.getScoreboardManager().getNewScoreboard();
     }
     // TODO: 完成统计和持久化后，记得更新这里
@@ -53,6 +53,20 @@ public class SwPlayer {
         public SwPlayerSetupMapStatus() {
 
 
+        }
+    }
+
+    @Getter
+    @Setter
+    public class SwPlayerGameStatus {
+        private int killed;
+        private boolean dead;
+        public SwPlayerGameStatus() {
+
+        }
+        public void clear() {
+            killed = 0;
+            dead = false;
         }
     }
 }

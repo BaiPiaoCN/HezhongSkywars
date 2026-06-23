@@ -4,6 +4,7 @@ import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XPotion;
 import com.hezhong.hezhongskywars.HezhongSkywars;
+import com.hezhong.hezhongskywars.game.GameEvent;
 import com.hezhong.hezhongskywars.utils.ColorT;
 import com.hezhong.hezhongskywars.utils.MathUtil;
 import com.hezhong.hezhongskywars.utils.type.ChestItem;
@@ -93,14 +94,14 @@ public class ConfigManager {
                 if (chestsCS != null) {
                     Set<String> chestTypes = chestsCS.getKeys(false);
                     for (String type : chestTypes) {
-                        // 格式："权重 : 物品 : 数量 : [附魔，用;分开] : [附魔等级，用;分开，一一对应] : [耐久/药水数据，用;分开] : [药水等级，用;分开，一一对应]
-                        // 共7项，分别对应rawItem的0~6
+                        // 权重 : 物品 : 数量 : [附魔，用;分开] : [附魔等级，用;分开，一一对应] : [耐久/药水数据，用;分开] : [药水等级，用;分开，一一对应] : [药水时长，用;分开，一一对应]
+                        // 共8项，分别对应rawItem的0~7
                         int minFilled = chestsConfig.getInt(type + ".minFilled");
                         int maxFilled = chestsConfig.getInt(type + ".maxFilled");
                         List<String> chestItems = chestsConfig.getStringList(type + ".items");
                         Map<ChestItem, Integer> finalItems = new HashMap<>();
                         for (String chestItem : chestItems) {
-                            chestItem = chestItem.trim();
+                            chestItem = chestItem.replaceAll("\\s", "");;
                             String[] rawItem = chestItem.split(":");
                             if (rawItem.length < 3) {
                                 HezhongSkywars.INSTANCE.getLogger().warning("Found a chest config with invalid item config, raw = " + chestItem);
@@ -110,7 +111,7 @@ public class ConfigManager {
                             XMaterial mat = XMaterial.matchXMaterial(rawItem[1]).get();
                             int number = Integer.parseInt(rawItem[2]);
                             List<Pair<XEnchantment, Integer>> enchantments = new ArrayList<>();
-                            List<Pair<XPotion, Integer>> potions = new ArrayList<>();
+                            List<Pair<XPotion, Pair<Integer, Integer>>> potions = new ArrayList<>();
                             if (rawItem.length >= 5) {
                                 String rawEnchantments[] = rawItem[3].split(";");
                                 String rawEnchantmentsLevel[] = rawItem[4].split(";");
@@ -127,14 +128,16 @@ public class ConfigManager {
                                 if (MathUtil.isNumeric(rawData)) {
                                     durability = Integer.parseInt(rawData);
                                 } else {
-                                    if (rawItem.length >= 7) { // rawItem[6]包含药水等级数据
+                                    if (rawItem.length >= 8) { // rawItem[6]包含药水等级数据。rawItem[7]包含药水时长数据
                                         String rawPotions[] = rawData.split(";");
                                         String rawPotionLevels[] = rawItem[6].split(";");
+                                        String rawPotionTimes[] = rawItem[7].split(";");
                                         for (int p = 0; p < rawPotions.length; p++) {
                                             String potion = rawPotions[p].toUpperCase();
                                             int level = Integer.parseInt(rawPotionLevels[p]);
+                                            int time =  Integer.parseInt(rawPotionTimes[p]);
                                             XPotion xP = XPotion.valueOf(potion);
-                                            potions.add(new Pair<>(xP, level));
+                                            potions.add(new Pair<>(xP, new Pair<>(level, time)));
                                         }
 
                                     }
@@ -162,6 +165,10 @@ public class ConfigManager {
                         // mapName是游戏内地图名，不是世界名！
                         String originalWorldName = mapsConfig.getString(mapName + ".original_world");
                         String copyWorldName = mapsConfig.getString(mapName + ".copy_world");
+                        int minPlayersToAutostart = mapsConfig.getInt(mapName + ".min_players_to_autostart");
+                        int maxPlayers = mapsConfig.getInt(mapName + ".max_players");
+                        int countdown  = mapsConfig.getInt(mapName + ".countdown");
+                        boolean ok = mapsConfig.getBoolean(mapName + ".ok");
                         // 出生点选段
                         ConfigurationSection mapSpawnsCS = mapsConfig.getConfigurationSection(mapName + ".spawns");
                         Set<String> spawnsIds = mapSpawnsCS.getKeys(false);
@@ -184,7 +191,19 @@ public class ConfigManager {
                             String type = mapsConfig.getString(mapName + ".chests." + chestId + ".type");
                             chests.put(new Vector(chestX, chestY, chestZ), type);
                         }
-                        MapConfig finalMapConfig = new MapConfig(originalWorldName, copyWorldName, spawns, chests);
+                        // 事件选段
+                        List<GameEvent> gameEvents = new ArrayList<>();
+                        ConfigurationSection eventsCS = mapsConfig.getConfigurationSection(mapName + ".events");
+                        Set<String> eventIds = eventsCS.getKeys(false);
+                        for (String eventId : eventIds) {
+                            int time = mapsConfig.getInt(mapName + ".events." + eventId + ".time");
+                            String typeStr = mapsConfig.getString(mapName + ".events." + eventId + ".type");
+                            GameEvent.EventType type = GameEvent.EventType.valueOf(typeStr.toUpperCase());
+                            if (type == null) continue;
+                            gameEvents.add(new GameEvent(time, type));
+
+                        }
+                        MapConfig finalMapConfig = new MapConfig(originalWorldName, copyWorldName, minPlayersToAutostart, maxPlayers, countdown, ok, spawns, chests, gameEvents);
                         ConfigValues.mapConfigs.put(mapName, finalMapConfig);
                     }
                 }
@@ -200,14 +219,19 @@ public class ConfigManager {
     public void createMap(String mapName, String originalMap, String copyMap) {
         // 是否已存在？
         try {
-            if (mapsConfig.contains(mapName, true)) {
+            if (mapsConfig.contains(mapName)) {
                 return;
             }
             mapsConfig.createSection(mapName);
             mapsConfig.set(mapName + ".original_world", originalMap);
             mapsConfig.set(mapName + ".copy_world", copyMap);
+            mapsConfig.set(mapName + ".min_players_to_autostart", 2);
+            mapsConfig.set(mapName + ".max_players", 4);
+            mapsConfig.set(mapName + ".countdown", 30);
+            mapsConfig.set(mapName + ".ok", false);
             mapsConfig.createSection(mapName + ".spawns");
             mapsConfig.createSection(mapName + ".chests");
+            mapsConfig.createSection(mapName + ".events");
             mapsConfig.save(mapsConfigFile);
 
             HezhongSkywars.INSTANCE.getLogger().info("HSW Created Map " + mapName + ".");
@@ -221,7 +245,7 @@ public class ConfigManager {
     public void setUpMap(String mapName, List<Vector> spawns, Map<Vector, String> chests) {
         // 检查存在
         try {
-            if (mapsConfig.contains(mapName, true)) {
+            if (mapsConfig.contains(mapName)) {
                 // spawns，chests都是完整的，所以清空这些选段
                 mapsConfig.set(mapName + ".spawns", null);
                 mapsConfig.set(mapName + ".chests", null);
