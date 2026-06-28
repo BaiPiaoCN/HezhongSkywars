@@ -8,6 +8,7 @@ import com.hezhong.hezhongskywars.listeners.JoinQuitListener;
 import com.hezhong.hezhongskywars.manager.GameManager;
 import com.hezhong.hezhongskywars.manager.ListenerManager;
 import com.hezhong.hezhongskywars.setup.SetupListener;
+import com.hezhong.hezhongskywars.task.PlayerScoreBoardTask;
 import com.hezhong.hezhongskywars.utils.ColorT;
 import lombok.Getter;
 import org.bukkit.event.HandlerList;
@@ -56,6 +57,9 @@ public enum HezhongSkywars {
 
         // 命令
         plugin.getCommand("hsw").setExecutor(new CommandProcessor());
+
+        // 任务
+        new PlayerScoreBoardTask().runTaskTimer(plugin, 0, 10);
 
         logger.info(ColorT.t("Listeners OK"));
         logger.info(ColorT.t("&b&lHSW &a&lStarted successfully!"));

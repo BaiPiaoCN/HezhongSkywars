@@ -85,6 +85,7 @@ public class ConfigManager {
         try {
             // 负责真正读取配置信息
             ConfigValues.serverIp = ColorT.t(mainConfig.getString("basicInfo.serverIp"));
+            ConfigValues.serverName = ColorT.t(mainConfig.getString("basicInfo.serverName"));
             ConfigValues.lobbyWorld = mainConfig.getString("basicInfo.lobbyWorld");
 
             // 箱子读取
@@ -209,6 +210,7 @@ public class ConfigManager {
                 }
             } catch (Exception e) {
                 HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to load maps config.");
+                e.printStackTrace();
             }
         } catch (Exception e) {
             HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to load config file.");

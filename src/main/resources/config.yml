@@ -7,5 +7,6 @@
 
 basicInfo:
   # 基本信息配置
-  serverIp: "Hezhong Technology" # 显示用的服务器地址，可填写字符串，解析颜色代码
+  serverIp: "&eHezhong Technology" # 显示用的服务器地址，可填写字符串，解析颜色代码
+  serverName: "&e&lExample" # 显示用，服务器名称，解析颜色代码
   lobbyWorld: "world" # 大厅世界

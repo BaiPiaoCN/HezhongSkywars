@@ -4,8 +4,10 @@ import com.hezhong.hezhongskywars.HezhongSkywars;
 import com.hezhong.hezhongskywars.config.ConfigManager;
 import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.config.MapConfig;
+import com.hezhong.hezhongskywars.events.HSWGameStartEvent;
 import com.hezhong.hezhongskywars.game.Game;
 import com.hezhong.hezhongskywars.game.GameStatus;
+import com.hezhong.hezhongskywars.manager.GameManager;
 import com.hezhong.hezhongskywars.manager.SwPlayerManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.utils.ColorT;
@@ -47,7 +49,9 @@ public class CommandProcessor implements CommandExecutor {
         if (Objects.equals(args[0], "listMaps")) {
             processListMaps(cs);
         }
-
+        if (Objects.equals(args[0], "listGames")) {
+            processListGames(cs);
+        }
         if (Objects.equals(args[0], "play")) {
             processPlay(cs, args);
         }
@@ -66,6 +70,7 @@ public class CommandProcessor implements CommandExecutor {
         cs.sendMessage(ColorT.t("&e /hsw create <mapName> <originalWorldName> <copyWorldName> &a新建新地图"));
         cs.sendMessage(ColorT.t("&e /hsw modify <mapName> [options] [args] &a修改地图配置"));
         cs.sendMessage(ColorT.t("&e /hsw listMaps &a列出地图"));
+        cs.sendMessage(ColorT.t("&e /hsw listGames &a列出地图"));
         cs.sendMessage(ColorT.t("&e /hsw play <mapName> &a游玩一个地图"));
         cs.sendMessage(ColorT.t("&e /hsw start &a启动你正在游玩的地图"));
         if (cs instanceof Player) {
@@ -109,6 +114,7 @@ public class CommandProcessor implements CommandExecutor {
             String mapName = entry.getKey();
             Game g = entry.getValue();
             GameStatus status = g.getGameStatus();
+            cs.sendMessage(ColorT.t(String.format("&b游戏 &7%s &b状态 &7%s&b 人数 &7%s/%s", mapName, status, g.getAllPlayers().size(), g.getMaxPlayers())));
 
         }
     }
@@ -264,6 +270,38 @@ public class CommandProcessor implements CommandExecutor {
 
         }
     }
-    private void processPlay(CommandSender cs, String[] args) {}
-    private void processStart(CommandSender cs) {}
+    private void processPlay(CommandSender cs, String[] args) {
+        if (cs instanceof Player) {
+            if (args.length < 2) {
+                cs.sendMessage(ColorT.t("&c参数不足"));
+            }
+            Player p = (Player) cs;
+            SwPlayer sp = SwPlayerManager.getPlayer(p);
+
+            Game game = HezhongSkywars.INSTANCE.getGameManager().getGames().get(args[1]);
+            if (game == null) {
+                cs.sendMessage(ColorT.t("&c地图不存在"));
+            }
+            sp.joinGame(game);
+            cs.sendMessage(ColorT.t("&a把你发送到游戏 " + args[1]));
+        } else {
+            cs.sendMessage(ColorT.t("&c仅限玩家操作！"));
+        }
+    }
+    private void processStart(CommandSender cs) {
+        if (cs instanceof Player) {
+            Player p = (Player) cs;
+            SwPlayer sp = SwPlayerManager.getPlayer(p);
+            // 启动游戏
+            if (sp.getPlayingGame() != null) {
+                Game playing = sp.getPlayingGame();
+                HezhongSkywars.INSTANCE.getPlugin().getServer().getPluginManager().callEvent(new HSWGameStartEvent(playing.getMapName()));
+                p.sendMessage(ColorT.t("&a立即启动"));
+            } else {
+                p.sendMessage(ColorT.t("&c你不在任何游戏中"));
+            }
+        } else {
+            cs.sendMessage(ColorT.t("&c仅限玩家操作！"));
+        }
+    }
 }

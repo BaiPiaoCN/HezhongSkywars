@@ -4,6 +4,9 @@ normal: # 箱子类型名称
   maxFilled: 10 # 最大填充量
   items:
     # 格式："权重 : 物品 : 数量 : [附魔，用;分开] : [附魔等级，用;分开，一一对应] : [耐久/药水数据，用;分开] : [药水等级，用;分开，一一对应] : [药水时长，用;分开，一一对应]
-    - "25 : STONE_SWORD : 1 : SHARPNESS : 1"
-    - "20 : IRON_SWORD : 1"
-    - "50 : STONE : 32"
+    - "10 : STONE_SWORD : 1 : SHARPNESS : 1"
+    - "10 : IRON_SWORD : 1"
+    - "50 : STONE : 16"
+    - "50 : OAK_PLANKS: 16"
+    - "5 : IRON_HELMET : 1"
+    - "5 : GOLDEN_HELMET : 1"

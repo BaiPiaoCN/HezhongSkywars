@@ -87,6 +87,7 @@ public class GameManager {
                 if (w != null) {
                     // 禁止自然刷怪
                     w.setGameRuleValue("doMobSpawning", "false");
+                    w.setGameRuleValue("keepInventory", "true"); // 自己清理背包
                 }
                 futureLoad.complete(w);
             });

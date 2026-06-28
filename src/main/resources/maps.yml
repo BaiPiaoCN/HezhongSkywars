@@ -17,8 +17,8 @@ example_map: # 此处填写地图名
       y: 50
       z: 0
       type: "normal"
-    events:
-      1:
-        time: 300 # 秒。游戏开始后，多久触发事件？
-        type: "resetChest" # 事件类型。resetChest或stopGame
+  events:
+    1:
+      time: 300 # 秒。游戏开始后，多久触发事件？
+      type: "resetChest" # 事件类型。resetChest或stopGame
 
