@@ -2,15 +2,21 @@ package com.hezhong.hezhongskywars;
 
 import com.hezhong.hezhongskywars.command.CommandProcessor;
 import com.hezhong.hezhongskywars.config.ConfigManager;
+import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.game.GameListener;
 // import com.hezhong.hezhongskywars.game.gui.GUIListener;
 import com.hezhong.hezhongskywars.listeners.JoinQuitListener;
 import com.hezhong.hezhongskywars.manager.GameManager;
 import com.hezhong.hezhongskywars.manager.ListenerManager;
+import com.hezhong.hezhongskywars.manager.SwPlayerManager;
+import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.setup.SetupListener;
 import com.hezhong.hezhongskywars.task.PlayerScoreBoardTask;
 import com.hezhong.hezhongskywars.utils.ColorT;
 import lombok.Getter;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.event.HandlerList;
 
 import java.util.logging.Logger;
@@ -71,5 +77,10 @@ public enum HezhongSkywars {
         // 注销监听器
         HandlerList.unregisterAll(plugin);
         logger.info("HSW Stopped.");
+    }
+
+    public Location getLobbySpawnLocation() {
+        World lobbyWorld = Bukkit.getWorld(ConfigValues.lobbyWorld);
+        return lobbyWorld.getSpawnLocation();
     }
 }

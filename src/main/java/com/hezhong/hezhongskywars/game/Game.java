@@ -77,6 +77,7 @@ public class Game {
             if (allPlayers.size() >= maxPlayers) {
                 return false;
             }
+            restoreHide(player);
             allPlayers.add(player);
             playingPlayerStatus.put(player.getUniqueId(), new SwPlayingGamePlayer(player));
             // 将玩家传送到出生点
@@ -89,6 +90,7 @@ public class Game {
             player.setHealth(20);
             player.setFoodLevel(20);
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, Integer.MAX_VALUE, 1));
+            player.setGameMode(GameMode.SURVIVAL);
 
             if (getAlivePlayers().size() >= ConfigValues.mapConfigs.get(mapName).getMinPlayersToAutostart()) {
                 // 准备开始
@@ -176,9 +178,9 @@ public class Game {
         // quit说明不是被杀的，是自己退的。ChangeWorld和QuitEvent都算
         // 因为QuitEvent会清除SwPlayer，因此我们把QuitEvent的处理和SwPlayer的销毁放在一起，注意先后顺序
         Location location = killed.getLocation();
-        killed.setBedSpawnLocation(location);
         SwPlayer sp = SwPlayerManager.getPlayer(killed);
         assert sp != null : "?"; // 不会吧？
+        sp.setNextSpawnLocation(location);
         if (gameStatus == GameStatus.PLAYING) { // 此时游戏还在进行
             killed.getInventory().clear();
             if (killer != null && !quit) { // 被杀了
@@ -193,6 +195,9 @@ public class Game {
                     killed.teleport(location);
                 }
                 toSpectate(killed);
+                if (getAlivePlayers().size() <= 1) {
+                    normalEnd();
+                }
                 return ColorT.t("&7" + killed.getName() + " &e被 &7" + killer.getName() + " &e杀死了！");
             } else if (killer == null && !quit) {
                 SwPlayingGamePlayer swpgpKilled = playingPlayerStatus.get(killed.getUniqueId());
@@ -205,6 +210,7 @@ public class Game {
                 toSpectate(killed);
                 // 直接默认返回值（击杀语）
             } else if (quit) {
+                restoreHide(killed);
                 allPlayers.remove(killed);
                 SwPlayingGamePlayer swpgpKilled = playingPlayerStatus.get(killed.getUniqueId());
                 if (swpgpKilled.getStatus() == SwPlayingGamePlayer.PlayerStatus.ALIVE) {
@@ -212,12 +218,12 @@ public class Game {
                 }
                 swpgpKilled.setStatus(SwPlayingGamePlayer.PlayerStatus.QUIT);
                 sp.setPlayingGame(null);
+                if (getAlivePlayers().size() <= 1) {
+                    normalEnd();
+                }
                 return "";
             }
 
-            if (getAlivePlayers().size() <= 1) {
-                normalEnd();
-            }
         } else if (gameStatus == GameStatus.WAITING || gameStatus == GameStatus.STOPPED) {
             if (!quit) {
                 killed.spigot().respawn();
@@ -228,10 +234,14 @@ public class Game {
                 sp.setPlayingGame(null);
             }
         }
+        if (getAlivePlayers().size() <= 1) {
+            normalEnd();
+        }
         return ColorT.t("&7" + killed.getName() + " &e死了。");
     }
 
     private void normalEnd() {
+        if (gameStatus != GameStatus.PLAYING) return;
         gameStatus = GameStatus.STOPPED;
         List<Pair<Integer, Player>> mostKilled = new ArrayList<>();
         // 按击杀数排序
@@ -276,9 +286,12 @@ public class Game {
 
         Bukkit.getScheduler().runTaskLater(HezhongSkywars.INSTANCE.getPlugin(), () -> {
             for (Player player : allPlayers) {
-                player.teleport(Bukkit.getWorld(ConfigValues.lobbyWorld).getSpawnLocation());
                 SwPlayer sp = SwPlayerManager.getPlayer(player);
                 sp.setPlayingGame(null);
+                restoreHide(player);
+                player.getInventory().clear();
+                player.getInventory().setArmorContents(null);
+                player.teleport(Bukkit.getWorld(ConfigValues.lobbyWorld).getSpawnLocation());
             }
             gameStatus = GameStatus.RESETTING;
             Bukkit.getScheduler().runTaskAsynchronously(HezhongSkywars.INSTANCE.getPlugin(), () -> {
@@ -450,5 +463,10 @@ public class Game {
 
     public SwPlayingGamePlayer getPlayingPlayer(UUID uuid) { // 暴露给外
         return  playingPlayerStatus.get(uuid);
+    }
+    private void restoreHide(Player p) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            p.showPlayer(player);
+        }
     }
 }

@@ -25,6 +25,8 @@ public class JoinQuitListener implements Listener {
             HezhongSkywars.INSTANCE.getLogger().warning("HSW LobbyWorld is Null?");
         }
         SwPlayerManager.addPlayer(player);
+        SwPlayer p = SwPlayerManager.getPlayer(player);
+        p.setNextSpawnLocation(lobbyWorld.getSpawnLocation());
     }
 
     @EventHandler
