@@ -74,6 +74,8 @@ public class PlayerScoreBoardTask extends BukkitRunnable {
                         "&a玩家: &f" + game.getAlivePlayers().size() + "&7/&f" + game.getMaxPlayers(),
                         "",
                         "&b地图: &f" + game.getMapName(),
+                        "",
+                        "&b职业: &f" + game.getPlayerKit(player),
                 };
                 break;
 
@@ -86,6 +88,8 @@ public class PlayerScoreBoardTask extends BukkitRunnable {
                         "&a玩家: &f" + game.getAlivePlayers().size() + "&7/&f" + game.getMaxPlayers(),
                         "",
                         "&b地图: &f" + game.getMapName(),
+                        "",
+                        "&b职业: &f" + game.getPlayerKit(player),
                         "&7&m----------------"
                 };
                 break;
@@ -104,6 +108,8 @@ public class PlayerScoreBoardTask extends BukkitRunnable {
                         "&a存活: &f" + alive + "&7/&f" + total,
                         "",
                         "&e时间: &f" + formatTime(game.getRunnedTime()),
+                        "",
+                        "&b职业: &f" + game.getPlayerKit(player),
                         "&7&m----------------"
                 };
                 break;
@@ -114,9 +120,11 @@ public class PlayerScoreBoardTask extends BukkitRunnable {
                 objective.setDisplayName(ColorT.t("&6&lSkywars"));
                 lines = new String[]{
                         "&7&m----------------",
-                        "&e游戏结束!",
+                        "&e游戏结束",
                         "",
-                        "&a即将返回大厅...",
+                        "&e胜者 &f" + game.getWinnerName(),
+                        "",
+                        "&a即将自动返回大厅...",
                         "&7&m----------------"
                 };
                 break;

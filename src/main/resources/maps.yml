@@ -1,4 +1,5 @@
 ### Hezhong Skywars 地图设置
+# 在配置地图的时候，你也需要配置一个世界重生点。
 example_map: # 此处填写地图名
   original_world: "skywars_1" # 此处填写原始世界名。世界存放在./plugins/HezhongSkywars/maps下。
   copy_world: "skywars_1_runtime" # 插件运行时，复制的世界名。此世界运行在服务器中。

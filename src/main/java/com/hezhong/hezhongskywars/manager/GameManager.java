@@ -6,8 +6,7 @@ import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.config.MapConfig;
 import com.hezhong.hezhongskywars.game.Chest;
 import com.hezhong.hezhongskywars.game.Game;
-import com.hezhong.hezhongskywars.utils.ColorT;
-import com.hezhong.hezhongskywars.utils.type.ChestItem;
+import com.hezhong.hezhongskywars.utils.type.CustomItem;
 import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
@@ -15,13 +14,10 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.FileUtil;
 import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -75,9 +71,13 @@ public class GameManager {
                 if (Bukkit.getWorld(mc.getCopyWorld()) != null) {
                     Bukkit.unloadWorld(mc.getCopyWorld(), false);
                 }
-                futureUnload.complete(true);
+                Bukkit.getScheduler().runTaskLater(HezhongSkywars.INSTANCE.getPlugin(), () -> {
+                    // 如果不延迟的话，可能导致文件句柄不释放，导致重置异常
+                    futureUnload.complete(true);
+                }, 20); // 1s足矣
             });
             futureUnload.join();
+            // 世界卸载后，复制一份地图
             copyWorld(mc.getOriginalWorld(), mc.getCopyWorld());
             // 文件复制后，加载世界
             CompletableFuture<World> futureLoad = new CompletableFuture<>();
@@ -103,7 +103,7 @@ public class GameManager {
                     ChestConfig cc = ConfigValues.chestConfigs.get(entry.getValue());
                     Chest chest = new Chest(mapName, cc.getMinFilled(), cc.getMaxFilled());
                     // 遍历所有的物品
-                    for (Map.Entry<ChestItem, Integer> itemEntry : cc.getItem().entrySet()) {
+                    for (Map.Entry<CustomItem, Integer> itemEntry : cc.getItem().entrySet()) {
                         chest.addChestItem(itemEntry.getValue(), itemEntry.getKey());
                     }
                     chests.put(new Location(w, entry.getKey().getX(), entry.getKey().getY(), entry.getKey().getZ()), chest);
@@ -133,8 +133,12 @@ public class GameManager {
             FileUtils.copyDirectory(originalWorld, targetWorld);
             // 删session.lock
             File sessionLock = new File(targetWorld, "session.lock");
+            File uid = new File(targetWorld, "uid.dat");
             if (sessionLock.exists()) {
                 FileUtils.delete(sessionLock);
+            }
+            if  (uid.exists()) {
+                FileUtils.delete(uid);
             }
         } catch (Exception e) {
             HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to copy world");

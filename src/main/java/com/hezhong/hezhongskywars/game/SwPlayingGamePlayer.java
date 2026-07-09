@@ -1,5 +1,7 @@
 package com.hezhong.hezhongskywars.game;
 
+import com.hezhong.hezhongskywars.config.KitConfig;
+import com.hezhong.hezhongskywars.utils.type.Pair;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.Player;
@@ -19,6 +21,7 @@ public class SwPlayingGamePlayer {
 
     private int kills = 0;
     private PlayerStatus status = PlayerStatus.ALIVE;
+    private String selectedKit = "None";
 
     public SwPlayingGamePlayer(Player pp) {
         this.player = pp;

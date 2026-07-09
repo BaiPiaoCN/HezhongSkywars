@@ -7,6 +7,8 @@ import com.hezhong.hezhongskywars.config.MapConfig;
 import com.hezhong.hezhongskywars.events.HSWGameStartEvent;
 import com.hezhong.hezhongskywars.game.Game;
 import com.hezhong.hezhongskywars.game.GameStatus;
+import com.hezhong.hezhongskywars.gui.HezhongSkywarsGUI;
+import com.hezhong.hezhongskywars.gui.impl.KitSelectGUI;
 import com.hezhong.hezhongskywars.manager.GameManager;
 import com.hezhong.hezhongskywars.manager.SwPlayerManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
@@ -27,15 +29,34 @@ import java.util.*;
 public class CommandProcessor implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender cs, Command command, String label, String[] args) {
-        if (!cs.hasPermission("hsw.command")) {
-            return false;
-        }
         if (args.length < 1) {
-            cs.sendMessage(ColorT.t("&c命令参数不足"));
+            cs.sendMessage(ColorT.t("&c命令参数不足。"));
+            processHelp(cs);
             return true;
         }
+        // 无需权限
         if (Objects.equals(args[0], "help")) {
             processHelp(cs);
+        }
+        if (Objects.equals(args[0], "hub")) {
+            processHub(cs);
+        }
+        if (Objects.equals(args[0], "listGames")) {
+            processListGames(cs);
+        }
+        if (Objects.equals(args[0], "play")) {
+            processPlay(cs, args);
+        }
+        if (Objects.equals(args[0], "selectKit")) {
+            processSelectKit(cs, args);
+        }
+        if (Objects.equals(args[0], "kitSelectorGUI")) {
+            processKitSelectorGUI(cs);
+        }
+        
+        if (!cs.hasPermission("hsw.command." + args[0])) {
+            cs.sendMessage(ColorT.t("&c命令权限不足，配置&e" + "hsw.command." + args[0] + "&c节点！"));
+            return false;
         }
         if (Objects.equals(args[0], "ver")) {
             processVersion(cs);
@@ -49,12 +70,7 @@ public class CommandProcessor implements CommandExecutor {
         if (Objects.equals(args[0], "listMaps")) {
             processListMaps(cs);
         }
-        if (Objects.equals(args[0], "listGames")) {
-            processListGames(cs);
-        }
-        if (Objects.equals(args[0], "play")) {
-            processPlay(cs, args);
-        }
+
         if (Objects.equals(args[0], "start")) {
             processStart(cs);
         }
@@ -65,14 +81,17 @@ public class CommandProcessor implements CommandExecutor {
     private void processHelp(CommandSender cs) {
         cs.sendMessage(ColorT.t("&b&l Hezhong Skywars 命令帮助"));
         cs.sendMessage(ColorT.t("&c&l <>为必选参数，[]为可选参数"));
-        cs.sendMessage(ColorT.t("&e /hsw help &a显示帮助"));
+        cs.sendMessage(ColorT.t("&e /hsw help &a显示帮助 &7[无需权限]"));
         cs.sendMessage(ColorT.t("&e /hsw ver &a显示插件版本和信息"));
         cs.sendMessage(ColorT.t("&e /hsw create <mapName> <originalWorldName> <copyWorldName> &a新建新地图"));
         cs.sendMessage(ColorT.t("&e /hsw modify <mapName> [options] [args] &a修改地图配置"));
         cs.sendMessage(ColorT.t("&e /hsw listMaps &a列出地图"));
-        cs.sendMessage(ColorT.t("&e /hsw listGames &a列出地图"));
-        cs.sendMessage(ColorT.t("&e /hsw play <mapName> &a游玩一个地图"));
         cs.sendMessage(ColorT.t("&e /hsw start &a启动你正在游玩的地图"));
+        cs.sendMessage(ColorT.t("&e /hsw listGames &a列出游戏 &7[无需权限]"));
+        cs.sendMessage(ColorT.t("&e /hsw play <mapName> &a游玩一个地图 &7[无需权限]"));
+        cs.sendMessage(ColorT.t("&e /hsw hub &a返回大厅 &7[无需权限]"));
+        cs.sendMessage(ColorT.t("&e /hsw selectKit <kitName> &a选择职业 &7[无需权限]"));
+        cs.sendMessage(ColorT.t("&e /hsw kitSelectorGUI &a打开职业GUI &7[无需权限]"));
         if (cs instanceof Player) {
             Player pp = (Player) cs;
             SwPlayer sp = SwPlayerManager.getPlayer(pp);
@@ -90,6 +109,17 @@ public class CommandProcessor implements CommandExecutor {
                 }
             }
         }
+    }
+    private void processHub(CommandSender cs) {
+        if (!(cs instanceof Player)) {
+            cs.sendMessage(ColorT.t("&c仅限玩家操作！"));
+            return;
+        }
+        Player pp = (Player) cs;
+        SwPlayer sp = SwPlayerManager.getPlayer(pp);
+        pp.teleport(HezhongSkywars.INSTANCE.getLobbySpawnLocation());
+        sp.setPlayingGame(null);
+        pp.sendMessage(ColorT.t("&a传送到大厅......"));
     }
     private void processVersion(CommandSender cs) {
         cs.sendMessage(ColorT.t("&b&lHezhong Skywars &eBy Hezhong Technology <== tjshawa"));
@@ -114,7 +144,7 @@ public class CommandProcessor implements CommandExecutor {
             String mapName = entry.getKey();
             Game g = entry.getValue();
             GameStatus status = g.getGameStatus();
-            cs.sendMessage(ColorT.t(String.format("&b游戏 &7%s &b状态 &7%s&b 人数 &7%s/%s", mapName, status, g.getAllPlayers().size(), g.getMaxPlayers())));
+            cs.sendMessage(ColorT.t(String.format("&b游戏 &7%s &b状态 &7%s&b 人数 &7%s/%s", mapName, status, g.getAlivePlayers().size(), g.getMaxPlayers())));
 
         }
     }
@@ -281,6 +311,11 @@ public class CommandProcessor implements CommandExecutor {
             Game game = HezhongSkywars.INSTANCE.getGameManager().getGames().get(args[1]);
             if (game == null) {
                 cs.sendMessage(ColorT.t("&c地图不存在"));
+                return;
+            }
+            if (game.getGameStatus() == GameStatus.RESETTING) {
+                cs.sendMessage(ColorT.t("&c地图正在重置"));
+                return;
             }
             sp.joinGame(game);
             cs.sendMessage(ColorT.t("&a把你发送到游戏 " + args[1]));
@@ -302,6 +337,33 @@ public class CommandProcessor implements CommandExecutor {
             }
         } else {
             cs.sendMessage(ColorT.t("&c仅限玩家操作！"));
+        }
+    }
+    private void processSelectKit(CommandSender cs, String[] args) {
+        if (args.length < 2) {
+            cs.sendMessage(ColorT.t("&c命令参数不足"));
+            return;
+        }
+        String kitName = args[1];
+        if (cs instanceof Player) {
+            Player p = (Player) cs;
+            SwPlayer sp = SwPlayerManager.getPlayer(p);
+            if (sp.getPlayingGame() != null) { // 游戏内才能选职业！
+                Game playing = sp.getPlayingGame();
+                if (ConfigValues.kitConfigs.containsKey(kitName)) {
+                    // 存在该职业
+                    // 选择
+                    playing.setPlayerKit(p, kitName);
+                    p.sendMessage(ColorT.t("&a&l你选择了职业：" + kitName));
+                }
+            }
+        }
+    }
+    private void processKitSelectorGUI(CommandSender cs) {
+        if (cs instanceof Player) {
+            Player p = (Player) cs;
+            HezhongSkywarsGUI kitSelectorGUI = new KitSelectGUI(p);
+            kitSelectorGUI.open();
         }
     }
 }

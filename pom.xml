@@ -45,10 +45,14 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                        <relocations>
+                            <relocations>
                                 <relocation>
                                     <pattern>org.apache.commons.io</pattern>
                                     <shadedPattern>com.hezhong.libs.commons.io</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                  <pattern>de.tr7zw.changeme.nbtapi</pattern>
+                                  <shadedPattern>com.hezhong.libs.nbtapi</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -76,7 +80,12 @@
         <repository>
           <id>z-jitpack</id>
           <url>https://jitpack.io</url>
-      </repository>
+        </repository>
+        <repository>
+          <id>codemc-repo</id>
+          <url>https://repo.codemc.io/repository/maven-public/</url>
+          <layout>default</layout>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -119,6 +128,12 @@
            <groupId>commons-io</groupId>
            <artifactId>commons-io</artifactId>
            <version>2.21.0</version>
+        </dependency>
+
+        <dependency>
+          <groupId>de.tr7zw</groupId>
+          <artifactId>item-nbt-api</artifactId>
+          <version>2.15.7</version>
         </dependency>
     </dependencies>
 </project>

@@ -4,11 +4,13 @@ import com.connorlinfoot.titleapi.TitleAPI;
 import com.cryptomorin.xseries.XSound;
 import com.hezhong.hezhongskywars.HezhongSkywars;
 import com.hezhong.hezhongskywars.config.ConfigValues;
+import com.hezhong.hezhongskywars.config.KitConfig;
 import com.hezhong.hezhongskywars.events.HSWGameStartEvent;
 import com.hezhong.hezhongskywars.manager.SwPlayerManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.utils.ColorT;
-import com.hezhong.hezhongskywars.utils.type.ChestItem;
+import com.hezhong.hezhongskywars.utils.SpecialItems;
+import com.hezhong.hezhongskywars.utils.type.CustomItem;
 import com.hezhong.hezhongskywars.utils.type.Pair;
 import lombok.Getter;
 import org.bukkit.*;
@@ -38,6 +40,7 @@ public class Game {
     private final List<Pair<Location, Player>> spawns; // y 占用出生点的玩家，用于分配
     private final List<GameEvent> events;
     private final List<GameEvent> eventsInFuture; // 还没执行的事件，[0]即下一个事件，用于计分板
+    private Player winner = null;
     // 游戏需要的Tasks
     private BukkitTask countdownTask;
     private BukkitTask eventRunnerTask;
@@ -91,6 +94,8 @@ public class Game {
             player.setFoodLevel(20);
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, Integer.MAX_VALUE, 1));
             player.setGameMode(GameMode.SURVIVAL);
+            ItemStack kitSelector = SpecialItems.kitSelector();
+            player.getInventory().addItem(kitSelector);
 
             if (getAlivePlayers().size() >= ConfigValues.mapConfigs.get(mapName).getMinPlayersToAutostart()) {
                 // 准备开始
@@ -102,7 +107,7 @@ public class Game {
                 playingPlayerStatus.put(player.getUniqueId(), new SwPlayingGamePlayer(player));
             }
             toSpectate(player);
-        }
+        } else return false;
         return true;
     }
 
@@ -118,7 +123,19 @@ public class Game {
         gameStatus = GameStatus.PLAYING;
         sendMessage("&c&l战斗！");
         for (Player player : allPlayers) {
+            player.getInventory().clear();
             TitleAPI.sendTitle(player, 0, 60, 20, ColorT.t("&c&l战斗！"));
+
+            SwPlayingGamePlayer swpgp = playingPlayerStatus.get(player.getUniqueId());
+            // 把职业物品给玩家
+            if (swpgp.getStatus() == SwPlayingGamePlayer.PlayerStatus.ALIVE) { // 保险
+                if (!Objects.equals(swpgp.getSelectedKit(), "")) {
+                    KitConfig kit = ConfigValues.kitConfigs.get(swpgp.getSelectedKit());
+                    for (CustomItem customItem : kit.getItems()) {
+                        player.getInventory().addItem(customItem.toItem());
+                    }
+                }
+            }
         }
         gameEventRunner();
     }
@@ -178,6 +195,9 @@ public class Game {
         // quit说明不是被杀的，是自己退的。ChangeWorld和QuitEvent都算
         // 因为QuitEvent会清除SwPlayer，因此我们把QuitEvent的处理和SwPlayer的销毁放在一起，注意先后顺序
         Location location = killed.getLocation();
+        if (location.getY() <= 5) {
+            location = world.getSpawnLocation();
+        }
         SwPlayer sp = SwPlayerManager.getPlayer(killed);
         assert sp != null : "?"; // 不会吧？
         sp.setNextSpawnLocation(location);
@@ -231,6 +251,16 @@ public class Game {
             } else {
                 allPlayers.remove(killed);
                 playingPlayerStatus.remove(killed.getUniqueId());
+                // 解除出生点的占用
+                Pair<Location, Player> removingSpawn = null;
+                for (Pair<Location, Player> spawn : spawns) {
+                    if (spawn.getY().getUniqueId() == killed.getUniqueId()) {
+                        removingSpawn = spawn;
+                        spawn.setY(null);
+                        break;
+                    }
+                }
+                HezhongSkywars.INSTANCE.getLogger().info("Removing Spawn Point:" + removingSpawn);
                 sp.setPlayingGame(null);
             }
         }
@@ -242,6 +272,8 @@ public class Game {
 
     private void normalEnd() {
         if (gameStatus != GameStatus.PLAYING) return;
+        // 此时只剩一个活人
+        winner = getAlivePlayers().get(0);
         gameStatus = GameStatus.STOPPED;
         List<Pair<Integer, Player>> mostKilled = new ArrayList<>();
         // 按击杀数排序
@@ -255,6 +287,7 @@ public class Game {
         // 展示击杀Top3
         int i = 1;
 
+        sendMessage("&e&l胜者 &f" + winner.getName());
         sendMessage("&7====================&a&l统计&7====================");
 
         // 展示数据前3的人
@@ -320,10 +353,10 @@ public class Game {
             throw new RuntimeException("[HSW] Cannot get Game Chest");
         }
         // 随机生成一些箱子物品
-        List<ChestItem> generated = gameChest.randomGenerateItems();
+        List<CustomItem> generated = gameChest.randomGenerateItems();
         List<ItemStack> items = new ArrayList<>();
         // 构造并转成ItemStack
-        for (ChestItem item : generated) items.add(item.toItem());
+        for (CustomItem item : generated) items.add(item.toItem());
 
         Block block = location.getBlock();
         if (!(block.getState() instanceof org.bukkit.block.Chest)) return;
@@ -450,6 +483,11 @@ public class Game {
         }
         return alive;
     }
+    private void restoreHide(Player p) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            p.showPlayer(player);
+        }
+    }
 
     public List<Player> getSpectators() {
         List<Player> specs = new ArrayList<>();
@@ -464,9 +502,18 @@ public class Game {
     public SwPlayingGamePlayer getPlayingPlayer(UUID uuid) { // 暴露给外
         return  playingPlayerStatus.get(uuid);
     }
-    private void restoreHide(Player p) {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            p.showPlayer(player);
-        }
+    public void setPlayerKit(Player player, String kitName) {
+        UUID uuid = player.getUniqueId();
+        SwPlayingGamePlayer swpgp = playingPlayerStatus.get(uuid);
+        swpgp.setSelectedKit(kitName);
+    }
+    public String getPlayerKit(Player player) {
+        UUID uuid = player.getUniqueId();
+        SwPlayingGamePlayer swpgp = playingPlayerStatus.get(uuid);
+        return swpgp.getSelectedKit();
+    }
+    public String getWinnerName() {
+        if (winner == null) return "None";
+        else return winner.getName();
     }
 }

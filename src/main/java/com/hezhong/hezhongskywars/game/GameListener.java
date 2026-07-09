@@ -1,10 +1,12 @@
 package com.hezhong.hezhongskywars.game;
 
 import com.hezhong.hezhongskywars.HezhongSkywars;
+import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.events.HSWGameStartEvent;
 import com.hezhong.hezhongskywars.manager.GameManager;
 import com.hezhong.hezhongskywars.manager.SwPlayerManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
+import com.hezhong.hezhongskywars.utils.SpecialItems;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -20,6 +22,9 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.Objects;
 
 public class GameListener implements Listener {
     @EventHandler
@@ -93,7 +98,7 @@ public class GameListener implements Listener {
         }
     }
     @EventHandler
-    public void onTp(PlayerChangedWorldEvent e) {
+    public void onChangeWorld(PlayerChangedWorldEvent e) {
         Player p = e.getPlayer();
         SwPlayer sp = SwPlayerManager.getPlayer(p);
         if (sp == null) return;
@@ -111,8 +116,10 @@ public class GameListener implements Listener {
             Game playingGame = sp.getPlayingGame();
             if (playingGame != null) {
                 SwPlayingGamePlayer swpgp = playingGame.getPlayingPlayer(p.getUniqueId());
-                if (playingGame.getGameStatus() == GameStatus.PLAYING) { // 存活则击杀
-                    p.setHealth(0d);
+                if (playingGame.getGameStatus() == GameStatus.PLAYING) {
+                    p.damage(10000);
+                } else {
+                    p.teleport(playingGame.getWorld().getSpawnLocation());
                 }
             }
         }

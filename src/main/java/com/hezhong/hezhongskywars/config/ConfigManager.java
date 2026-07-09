@@ -7,7 +7,7 @@ import com.hezhong.hezhongskywars.HezhongSkywars;
 import com.hezhong.hezhongskywars.game.GameEvent;
 import com.hezhong.hezhongskywars.utils.ColorT;
 import com.hezhong.hezhongskywars.utils.MathUtil;
-import com.hezhong.hezhongskywars.utils.type.ChestItem;
+import com.hezhong.hezhongskywars.utils.type.CustomItem;
 import com.hezhong.hezhongskywars.utils.type.Pair;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -100,51 +100,24 @@ public class ConfigManager {
                         int minFilled = chestsConfig.getInt(type + ".minFilled");
                         int maxFilled = chestsConfig.getInt(type + ".maxFilled");
                         List<String> chestItems = chestsConfig.getStringList(type + ".items");
-                        Map<ChestItem, Integer> finalItems = new HashMap<>();
+                        Map<CustomItem, Integer> finalItems = new HashMap<>();
                         for (String chestItem : chestItems) {
-                            chestItem = chestItem.replaceAll("\\s", "");;
+                            chestItem = chestItem.replaceAll("\\s", "");
                             String[] rawItem = chestItem.split(":");
                             if (rawItem.length < 3) {
                                 HezhongSkywars.INSTANCE.getLogger().warning("Found a chest config with invalid item config, raw = " + chestItem);
                                 continue;
                             }
                             int weight = Integer.parseInt(rawItem[0]);
-                            XMaterial mat = XMaterial.matchXMaterial(rawItem[1]).get();
-                            int number = Integer.parseInt(rawItem[2]);
-                            List<Pair<XEnchantment, Integer>> enchantments = new ArrayList<>();
-                            List<Pair<XPotion, Pair<Integer, Integer>>> potions = new ArrayList<>();
-                            if (rawItem.length >= 5) {
-                                String rawEnchantments[] = rawItem[3].split(";");
-                                String rawEnchantmentsLevel[] = rawItem[4].split(";");
-                                for (int e = 0; e < rawEnchantmentsLevel.length; e++) {
-                                    String enchantment = rawEnchantments[e].toUpperCase();
-                                    int level = Integer.parseInt(rawEnchantmentsLevel[e]);
-                                    enchantments.add(new Pair<>(XEnchantment.of(enchantment).get(), level));
-                                }
-                            }
 
-                            int durability = -1;
-                            if (rawItem.length >= 6) {
-                                String rawData = rawItem[5];
-                                if (MathUtil.isNumeric(rawData)) {
-                                    durability = Integer.parseInt(rawData);
-                                } else {
-                                    if (rawItem.length >= 8) { // rawItem[6]包含药水等级数据。rawItem[7]包含药水时长数据
-                                        String rawPotions[] = rawData.split(";");
-                                        String rawPotionLevels[] = rawItem[6].split(";");
-                                        String rawPotionTimes[] = rawItem[7].split(";");
-                                        for (int p = 0; p < rawPotions.length; p++) {
-                                            String potion = rawPotions[p].toUpperCase();
-                                            int level = Integer.parseInt(rawPotionLevels[p]);
-                                            int time =  Integer.parseInt(rawPotionTimes[p]);
-                                            XPotion xP = XPotion.valueOf(potion);
-                                            potions.add(new Pair<>(xP, new Pair<>(level, time)));
-                                        }
-
-                                    }
-                                }
+                            // 把权重丢掉
+                            String itemStr = String.join(":", Arrays.copyOfRange(rawItem, 1, rawItem.length));
+                            // 解析物品
+                            CustomItem item = CustomItem.parseItem(itemStr);
+                            if (item == null) {
+                                HezhongSkywars.INSTANCE.getLogger().warning("Found a chest config with invalid item config, raw = " + chestItem);
+                                continue;
                             }
-                            ChestItem item = new ChestItem(mat, number, durability, enchantments, potions);
                             finalItems.put(item, weight);
                         }
                         // 物品解析完了，存进去
@@ -210,6 +183,28 @@ public class ConfigManager {
                 }
             } catch (Exception e) {
                 HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to load maps config.");
+                e.printStackTrace();
+            }
+            // 读取职业配置
+            try {
+                ConfigurationSection kitsCS = kitsConfig.getConfigurationSection("");
+                if (kitsCS != null) {
+                    Set<String> names  = kitsCS.getKeys(false);
+                    for (String kitName : names) {
+                        int coins = kitsConfig.getInt(kitName + ".coins");
+                        String permission = kitsConfig.getString(kitName + ".permission");
+                        String material = kitsConfig.getString(kitName + ".material");
+                        List<CustomItem> items = new ArrayList<>();
+                        for (String itemStr : kitsConfig.getStringList(kitName + ".items")) {
+                            CustomItem item = CustomItem.parseItem(itemStr);
+                            if (item != null) items.add(item);
+                        }
+                        KitConfig kitConfig = new KitConfig(coins, permission, material, items);
+                        ConfigValues.kitConfigs.put(kitName, kitConfig);
+                    }
+                }
+            } catch (Exception e) {
+                HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to load kits config.");
                 e.printStackTrace();
             }
         } catch (Exception e) {

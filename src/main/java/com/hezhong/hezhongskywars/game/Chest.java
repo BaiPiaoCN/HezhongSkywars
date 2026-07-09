@@ -1,7 +1,7 @@
 package com.hezhong.hezhongskywars.game;
 
 import com.hezhong.hezhongskywars.utils.RandomUtil;
-import com.hezhong.hezhongskywars.utils.type.ChestItem;
+import com.hezhong.hezhongskywars.utils.type.CustomItem;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +15,7 @@ public class Chest {
     private final int minFilled;
     private final int maxFilled;
     // XMaterial包装 箱子物品和概率
-    private final Map<ChestItem, Integer> itemProbability; // K 物品 V 权重
+    private final Map<CustomItem, Integer> itemProbability; // K 物品 V 权重
     private int weightTotal; // 权重总和
     public Chest(String mapName, int minFilled, int maxFilled) {
         this.mapName = mapName;
@@ -24,24 +24,24 @@ public class Chest {
         this.maxFilled = maxFilled;
         weightTotal = 0;
     }
-    public void addChestItem(int prob, ChestItem item) {
+    public void addChestItem(int prob, CustomItem item) {
         // 添加箱子物品，配置加载时使用
         this.itemProbability.put(item, prob);
         weightTotal += prob;
     }
     // 用于填充箱子，随机生成物品
-    public List<ChestItem> randomGenerateItems() {
+    public List<CustomItem> randomGenerateItems() {
         if (weightTotal < 1) {
             return new ArrayList<>();
         }
         int generated = 0;
-        List<ChestItem> items = new ArrayList<>();
+        List<CustomItem> items = new ArrayList<>();
         int toGenerate = RandomUtil.randomInt(minFilled, maxFilled);
         // 能跑就行
         for (int i = 0; i < toGenerate; i++) {
             int randomN = RandomUtil.randomInt(1, weightTotal);
             int tW = 0;
-            for (Map.Entry<ChestItem, Integer> entry : itemProbability.entrySet()) {
+            for (Map.Entry<CustomItem, Integer> entry : itemProbability.entrySet()) {
                 if (randomN > tW && randomN <= (tW + entry.getValue())) {
                     items.add(entry.getKey());
                     generated++;
