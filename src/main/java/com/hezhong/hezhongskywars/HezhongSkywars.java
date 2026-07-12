@@ -3,6 +3,7 @@ package com.hezhong.hezhongskywars;
 import com.hezhong.hezhongskywars.command.CommandProcessor;
 import com.hezhong.hezhongskywars.config.ConfigManager;
 import com.hezhong.hezhongskywars.config.ConfigValues;
+import com.hezhong.hezhongskywars.db.DataBaseController;
 import com.hezhong.hezhongskywars.game.GameListener;
 // import com.hezhong.hezhongskywars.game.gui.GUIListener;
 import com.hezhong.hezhongskywars.gui.GUIListener;
@@ -30,6 +31,7 @@ public enum HezhongSkywars {
     private HezhongSkywarsLoader plugin;
     private ConfigManager configManager;
     private GameManager gameManager;
+    private DataBaseController database;
     private Logger logger;
 
     public void start(HezhongSkywarsLoader plugin) {
@@ -40,6 +42,14 @@ public enum HezhongSkywars {
 
         configManager = new ConfigManager(plugin);
         configManager.loadConfig();
+        if (ConfigValues.dataBaseConfig == null) {
+            logger.severe(ColorT.t("&c&lCannot use Database. Plugin will be disabled......"));
+            Bukkit.getPluginManager().disablePlugin(this.getPlugin());
+            return;
+        } else {
+            database = new DataBaseController();
+            database.connect();
+        }
         logger.info(ColorT.t("Config OK"));
         gameManager = new GameManager(plugin);
         gameManager.init();
@@ -68,6 +78,8 @@ public enum HezhongSkywars {
 
         // 任务
         new PlayerScoreBoardTask().runTaskTimer(plugin, 0, 10);
+
+
 
         logger.info(ColorT.t("Listeners OK"));
         logger.info(ColorT.t("&b&lHSW &a&lStarted successfully!"));

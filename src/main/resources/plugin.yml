@@ -1,5 +1,5 @@
 name: HezhongSkywars
-version: '${project.version}'
+version: '0.0.1a-260712a'
 main: com.hezhong.hezhongskywars.HezhongSkywarsLoader
 commands:
    hsw:

@@ -2,6 +2,7 @@ package com.hezhong.hezhongskywars.player;
 
 import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.game.Game;
+import com.hezhong.hezhongskywars.utils.type.DatabaseStatsData;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -19,7 +20,7 @@ import java.util.*;
 @Setter
 public class SwPlayer {
     private final Player player;
-    private SwPlayerStatistics stats;
+    private DatabaseStatsData stats = null; // Null说明未加载
     private Game playingGame; // 玩家在什么游戏内，包括游玩和旁观。
     private Scoreboard scoreBoard;
     private Objective scoreBoardObjective;
@@ -31,7 +32,7 @@ public class SwPlayer {
 
     public SwPlayer(Player player) {
         this.player = player;
-        stats = new SwPlayerStatistics();
+        stats = new DatabaseStatsData(this.player.getUniqueId(), this.player.getName());
         scoreBoard = Bukkit.getScoreboardManager().getNewScoreboard();
         scoreBoardObjective = scoreBoard.registerNewObjective("HSWScoreBoard", "dummy");
         scoreBoardObjective.setDisplayName(ConfigValues.serverName);
@@ -54,15 +55,6 @@ public class SwPlayer {
         g.addPlayer(player);
         playingGame = g;
         return true;
-    }
-
-    @Getter
-    @Setter
-    public class SwPlayerStatistics {
-        public SwPlayerStatistics() {
-
-        }
-        // 临时记录统计数据，用于其他地方读取
     }
 
     @Getter

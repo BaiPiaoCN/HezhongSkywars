@@ -40,7 +40,7 @@ public class Game {
     private final List<Pair<Location, Player>> spawns; // y 占用出生点的玩家，用于分配
     private final List<GameEvent> events;
     private final List<GameEvent> eventsInFuture; // 还没执行的事件，[0]即下一个事件，用于计分板
-    private Player winner = null;
+    private String winnerName = "";
     // 游戏需要的Tasks
     private BukkitTask countdownTask;
     private BukkitTask eventRunnerTask;
@@ -199,6 +199,7 @@ public class Game {
             location = world.getSpawnLocation();
         }
         SwPlayer sp = SwPlayerManager.getPlayer(killed);
+        SwPlayer killerSp = SwPlayerManager.getPlayer(killer);
         assert sp != null : "?"; // 不会吧？
         sp.setNextSpawnLocation(location);
         if (gameStatus == GameStatus.PLAYING) { // 此时游戏还在进行
@@ -208,7 +209,9 @@ public class Game {
                 if (swpgpKilled.getStatus() == SwPlayingGamePlayer.PlayerStatus.ALIVE) {
                     SwPlayingGamePlayer swpgpKiller = playingPlayerStatus.get(killer.getUniqueId());
                     swpgpKiller.setKills(swpgpKiller.getKills() + 1);
+                    killerSp.getStats().kills++;
                     swpgpKilled.setStatus(SwPlayingGamePlayer.PlayerStatus.DEAD);
+                    sp.getStats().deaths++;
                     // TODO: 此处预留，需要持久化保存统计数据
                     killed.getInventory().clear();
                     killed.spigot().respawn();
@@ -223,6 +226,7 @@ public class Game {
                 SwPlayingGamePlayer swpgpKilled = playingPlayerStatus.get(killed.getUniqueId());
                 if (swpgpKilled.getStatus() == SwPlayingGamePlayer.PlayerStatus.ALIVE) {
                     swpgpKilled.setStatus(SwPlayingGamePlayer.PlayerStatus.DEAD);
+                    sp.getStats().deaths++;
                     // 此处预留，需要持久化保存统计数据
                     killed.spigot().respawn();
                     killed.teleport(location);
@@ -234,6 +238,7 @@ public class Game {
                 allPlayers.remove(killed);
                 SwPlayingGamePlayer swpgpKilled = playingPlayerStatus.get(killed.getUniqueId());
                 if (swpgpKilled.getStatus() == SwPlayingGamePlayer.PlayerStatus.ALIVE) {
+                    sp.getStats().deaths++;
                     sendMessage("&7" + killed.getName() + " &e退出了。");
                 }
                 swpgpKilled.setStatus(SwPlayingGamePlayer.PlayerStatus.QUIT);
@@ -272,8 +277,12 @@ public class Game {
 
     private void normalEnd() {
         if (gameStatus != GameStatus.PLAYING) return;
-        // 此时只剩一个活人
-        winner = getAlivePlayers().get(0);
+        // 判断活人数量
+        if (getAlivePlayers().size() > 1) {
+            winnerName = "多个";
+        } else {
+            winnerName = getAlivePlayers().get(0).getName();
+        }
         gameStatus = GameStatus.STOPPED;
         List<Pair<Integer, Player>> mostKilled = new ArrayList<>();
         // 按击杀数排序
@@ -287,7 +296,7 @@ public class Game {
         // 展示击杀Top3
         int i = 1;
 
-        sendMessage("&e&l胜者 &f" + winner.getName());
+        sendMessage("&e&l胜者 &f" + winnerName);
         sendMessage("&7====================&a&l统计&7====================");
 
         // 展示数据前3的人
@@ -296,9 +305,12 @@ public class Game {
             sendMessage(String.format("&cTop %s &7%s &a击杀 %s", i, pair.getY().getName(), pair.getX()));
             i++;
         }
-        // 发送胜利标题
+
+        // 此处处理胜利者
         for (Player winner : getAlivePlayers()) {
+            SwPlayer sp = SwPlayerManager.getPlayer(winner);
             TitleAPI.sendTitle(winner, 0, 90, 10, ColorT.t("&e&lVICTORY"));
+            sp.getStats().wins++;
         }
 
         // 烟花声庆祝
@@ -511,9 +523,5 @@ public class Game {
         UUID uuid = player.getUniqueId();
         SwPlayingGamePlayer swpgp = playingPlayerStatus.get(uuid);
         return swpgp.getSelectedKit();
-    }
-    public String getWinnerName() {
-        if (winner == null) return "None";
-        else return winner.getName();
     }
 }

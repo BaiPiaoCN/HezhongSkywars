@@ -4,6 +4,7 @@ import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XPotion;
 import com.hezhong.hezhongskywars.HezhongSkywars;
+import com.hezhong.hezhongskywars.db.DataBaseType;
 import com.hezhong.hezhongskywars.game.GameEvent;
 import com.hezhong.hezhongskywars.utils.ColorT;
 import com.hezhong.hezhongskywars.utils.MathUtil;
@@ -87,6 +88,29 @@ public class ConfigManager {
             ConfigValues.serverIp = ColorT.t(mainConfig.getString("basicInfo.serverIp"));
             ConfigValues.serverName = ColorT.t(mainConfig.getString("basicInfo.serverName"));
             ConfigValues.lobbyWorld = mainConfig.getString("basicInfo.lobbyWorld");
+
+
+            // 数据库配置
+            // database下
+            try {
+                String dbTypeStr = mainConfig.getString("database.dbType");
+
+                DataBaseType dbType = null;
+                dbType = DataBaseType.valueOf(dbTypeStr.toUpperCase());
+
+                String host =  mainConfig.getString("database.host");
+                int port = mainConfig.getInt("database.port");
+                String user = mainConfig.getString("database.user");
+                String password = mainConfig.getString("database.password");
+                String database = mainConfig.getString("database.database");
+                String tablePrefix = mainConfig.getString("database.table-prefix");
+                int reconnectTimeout =  mainConfig.getInt("database.reconnect-timeout");
+
+                ConfigValues.dataBaseConfig = new DataBaseConfig(dbType, host, port, user, password, database, tablePrefix, reconnectTimeout);
+            } catch (Exception e) {
+                HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to load database config.");
+                e.printStackTrace();
+            }
 
             // 箱子读取
             // 单独的try catch
