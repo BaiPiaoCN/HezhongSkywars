@@ -26,10 +26,10 @@ public class DataBaseController {
     public DataBaseController() {
         DataBaseType type = ConfigValues.dataBaseConfig.getType();
         if (type == DataBaseType.SQLITE) {
-            db = new SQLiteDataBase(ConfigValues.dataBaseConfig.getHost(), ConfigValues.dataBaseConfig.getTablePrefix());
+            db = new SQLiteDataBase(ConfigValues.dataBaseConfig.getSqliteFile(), ConfigValues.dataBaseConfig.getSqliteTablePrefix());
         } else if (type == DataBaseType.MYSQL) {
-            db = new MySQLDataBase(ConfigValues.dataBaseConfig.getHost(), ConfigValues.dataBaseConfig.getPort(), ConfigValues.dataBaseConfig.getUser(), ConfigValues.dataBaseConfig.getPassword(),
-                    ConfigValues.dataBaseConfig.getDatabase(), ConfigValues.dataBaseConfig.getTablePrefix(), ConfigValues.dataBaseConfig.getReconnectTimeout());
+            db = new MySQLDataBase(ConfigValues.dataBaseConfig.getMysqlHost(), ConfigValues.dataBaseConfig.getMysqlPort(), ConfigValues.dataBaseConfig.getMysqlUser(), ConfigValues.dataBaseConfig.getMysqlPassword(),
+                    ConfigValues.dataBaseConfig.getMysqlDatabase(), ConfigValues.dataBaseConfig.getMysqlTablePrefix(), ConfigValues.dataBaseConfig.getMysqlReconnectTimeout());
         } else {
             db = null;
             throw new UnsupportedOperationException("Unsupported database " + type);

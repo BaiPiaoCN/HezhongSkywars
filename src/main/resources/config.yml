@@ -12,10 +12,18 @@ basicInfo:
   lobbyWorld: "world" # 大厅世界
 database:
   type: "sqlite" # sqlite / mysql
-  host: "127.0.01" # 服务器地址。SQLite则填数据库文件路径，例如HSWDB.db。
-  port: 1145 # 服务器端口。SQLite无需填空！
-  user: root # 服务器用户（若有），没有则留空。SQLite无需填空！
-  password: 114514 # 服务器密码（若有），没有则留空。SQLite无需填空！
-  database: "root" # 数据库名
-  table-prefix: "hezhongsw" # 数据表前缀
-  reconnect-timeout: 5000 # 重连超时，毫秒
+  
+  # SQLite 配置（type 为 sqlite 时生效）
+  sqlite:
+    file: "plugins/HezhongSkywars/data.db" # 数据库文件路径（相对于服务端根目录）
+    table-prefix: "hezhongsw" # 数据表前缀
+    
+  # MySQL 配置（type 为 mysql 时生效）
+  mysql:
+    host: "127.0.0.1"
+    port: 3306
+    user: "root"
+    password: "114514"
+    database: "skywars"
+    table-prefix: "hezhongsw"
+    reconnect-timeout: 5000 # 重连超时，毫秒
