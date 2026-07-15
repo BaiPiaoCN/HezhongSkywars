@@ -93,26 +93,37 @@ public class ConfigManager {
             // 数据库配置
             // database下
             try {
-                String dbTypeStr = mainConfig.getString("database.dbType");
+                String dbTypeStr = mainConfig.getString("database.type");
 
                 DataBaseType dbType = null;
                 dbType = DataBaseType.valueOf(dbTypeStr.toUpperCase());
 
-                String host =  mainConfig.getString("database.host");
-                int port = mainConfig.getInt("database.port");
-                String user = mainConfig.getString("database.user");
-                String password = mainConfig.getString("database.password");
-                String database = mainConfig.getString("database.database");
-                String tablePrefix = mainConfig.getString("database.table-prefix");
-                int reconnectTimeout =  mainConfig.getInt("database.reconnect-timeout");
+                // SQLite 配置
+                String sqliteFile = mainConfig.getString("database.sqlite.file");
+                String sqliteTablePrefix = mainConfig.getString("database.sqlite.table-prefix");
 
-                ConfigValues.dataBaseConfig = new DataBaseConfig(dbType, host, port, user, password, database, tablePrefix, reconnectTimeout);
+                // MySQL 配置
+                String mysqlHost = mainConfig.getString("database.mysql.host");
+                int mysqlPort = mainConfig.getInt("database.mysql.port");
+                String mysqlUser = mainConfig.getString("database.mysql.user");
+                String mysqlPassword = mainConfig.getString("database.mysql.password");
+                String mysqlDatabase = mainConfig.getString("database.mysql.database");
+                String mysqlTablePrefix = mainConfig.getString("database.mysql.table-prefix");
+                int mysqlReconnectTimeout = mainConfig.getInt("database.mysql.reconnect-timeout");
+
+                ConfigValues.dataBaseConfig = new DataBaseConfig(
+                        dbType,
+                        sqliteFile, sqliteTablePrefix,
+                        mysqlHost, mysqlPort, mysqlUser,
+                        mysqlPassword, mysqlDatabase,
+                        mysqlTablePrefix, mysqlReconnectTimeout
+                );
             } catch (Exception e) {
                 HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to load database config.");
                 e.printStackTrace();
             }
 
-            // 箱子读取
+            // 箱子读取            // 箱子读取
             // 单独的try catch
             try {
                 ConfigurationSection chestsCS = chestsConfig.getConfigurationSection(""); // 根目录

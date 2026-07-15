@@ -47,16 +47,17 @@ public class SQLiteDataBase implements IDataBase {
             config.setMinimumIdle(1);
             config.setIdleTimeout(300000L);
             config.setMaxLifetime(1800000L);
+            config.setConnectionTestQuery("SELECT 1");
             config.setPoolName("HezhongSW-SQLite-Pool");
             // SQLite 连接属性
-            config.addDataSourceProperty("journal_mode", "WAL");
-            config.addDataSourceProperty("foreign_keys", "ON");
-            config.addDataSourceProperty("busy_timeout", "5000");
-
             dataSource = new HikariDataSource(config);
 
             try (Connection connection = dataSource.getConnection();
                  Statement stmt = connection.createStatement()) {
+                // Apply PRAGMAs via explicit statements (data source properties can fail for returning PRAGMAs)
+                stmt.execute("PRAGMA journal_mode=WAL");
+                stmt.execute("PRAGMA foreign_keys=ON");
+                stmt.execute("PRAGMA busy_timeout=5000");
                 String sql = "CREATE TABLE IF NOT EXISTS " + tableNamePrefix + "_stats (" +
                         "uuid VARCHAR(36) PRIMARY KEY, " +
                         "stats TEXT NOT NULL" +
