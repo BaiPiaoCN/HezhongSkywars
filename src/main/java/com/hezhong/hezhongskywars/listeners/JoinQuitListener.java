@@ -31,6 +31,7 @@ public class JoinQuitListener implements Listener {
         } else {
             HezhongSkywars.INSTANCE.getLogger().warning("HSW LobbyWorld is Null?");
         }
+
         SwPlayerManager.addPlayer(player);
         SwPlayer p = SwPlayerManager.getPlayer(player);
         p.setNextSpawnLocation(lobbyWorld.getSpawnLocation());
@@ -48,6 +49,7 @@ public class JoinQuitListener implements Listener {
             Game playing = sp.getPlayingGame();
             playing.processDeath(event.getPlayer(), null, true);
         }
+
         SwPlayerManager.removePlayer(event.getPlayer());
         // 写数据（持有sp对象）
         DatabaseStatsData data = sp.getStats();

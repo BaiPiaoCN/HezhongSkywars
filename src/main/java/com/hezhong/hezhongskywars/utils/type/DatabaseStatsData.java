@@ -1,6 +1,10 @@
 package com.hezhong.hezhongskywars.utils.type;
 
 
+import com.hezhong.hezhongskywars.player.SwPlayer;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class DatabaseStatsData {
@@ -11,6 +15,7 @@ public class DatabaseStatsData {
     public int gamesPlayed = 0;
     public int wins = 0;
     public int coins = 0;
+    public List<SwPlayer.PlayerKit> kits = new ArrayList<>();
     public DatabaseStatsData(UUID uuid, String playerName) {
         this.uuid = uuid;
         this.playerName = playerName;

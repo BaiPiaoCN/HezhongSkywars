@@ -72,4 +72,13 @@ public class SwPlayer {
         }
     }
 
+    @Getter
+    @Setter
+    public class PlayerKit {
+        private final String kitName;
+        public PlayerKit(String kitName) {
+            this.kitName = kitName;
+        }
+    }
+
 }
