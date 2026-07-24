@@ -27,3 +27,17 @@ database:
     database: "skywars"
     table-prefix: "hezhongsw"
     reconnect-timeout: 5000 # 重连超时，毫秒
+
+coins:
+  winAdd: 100 # 一局胜利游戏能获得的硬币
+  killAdd: 10 # 一局胜利游戏能获得的硬币
+
+exp:
+  winAdd: 100 # 一局胜利游戏能获得的经验
+  killAdd: 10 # 一局胜利游戏能获得的经验
+
+levels:
+  # 游戏内等级
+  # 达到指定的经验后，可达到对应等级
+  needExps: [0, 1000, 3000, 5000, 8000, 12000, 15000] # 达到该等级需要的经验，一项一级
+

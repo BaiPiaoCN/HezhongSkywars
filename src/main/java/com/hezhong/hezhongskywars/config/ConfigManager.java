@@ -89,6 +89,15 @@ public class ConfigManager {
             ConfigValues.serverName = ColorT.t(mainConfig.getString("basicInfo.serverName"));
             ConfigValues.lobbyWorld = mainConfig.getString("basicInfo.lobbyWorld");
 
+            ConfigValues.coinsWinAdd = mainConfig.getInt("coins.winAdd");
+            ConfigValues.coinsKillAdd = mainConfig.getInt("coins.killAdd");
+            ConfigValues.expKillAdd = mainConfig.getInt("exp.killAdd");
+            ConfigValues.expWinAdd = mainConfig.getInt("exp.winAdd");
+            List<Integer> levelNeedExps = new ArrayList<>();
+            // 获取List
+            levelNeedExps = mainConfig.getIntegerList("levels.needExps");
+            ConfigValues.levelNeedExps = levelNeedExps;
+
 
             // 数据库配置
             // database下

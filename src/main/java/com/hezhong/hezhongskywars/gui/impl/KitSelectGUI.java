@@ -6,6 +6,7 @@ import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.config.KitConfig;
 import com.hezhong.hezhongskywars.gui.GUIListener;
 import com.hezhong.hezhongskywars.gui.HezhongSkywarsGUI;
+import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.utils.ColorT;
 import com.hezhong.hezhongskywars.utils.type.CustomItem;
 import org.bukkit.Bukkit;
@@ -26,8 +27,8 @@ public class KitSelectGUI extends HezhongSkywarsGUI {
     private static final int ROWS = 6;
     private final Map<Integer, String> slotKitMap = new HashMap<>();
 
-    public KitSelectGUI(Player player) {
-        super(player, "&8选择职业", ROWS);
+    public KitSelectGUI(Player player, SwPlayer swPlayer) {
+        super(player, swPlayer, "&8选择职业", ROWS);
         build();
     }
 
@@ -70,7 +71,11 @@ public class KitSelectGUI extends HezhongSkywarsGUI {
         }
         lore.add(ColorT.t("&7物品数量: &f" + config.getItems().size()));
         lore.add("");
-        lore.add(ColorT.t("&a左键选择 &7| &e右键预览"));
+        if (ownerSp.getPlayingGame() != null) {
+            lore.add(ColorT.t("&a左键选择 &7| &e右键预览"));
+        } else {
+            lore.add(ColorT.t("&a左键购买 &7| &e右键预览"));
+        }
 
         meta.setLore(lore);
         item.setItemMeta(meta);
@@ -102,8 +107,8 @@ public class KitSelectGUI extends HezhongSkywarsGUI {
     }
 
     private void openPreview(String kitName, KitConfig config) {
-        int rows = Math.max(1, Math.min((config.getItems().size() / 9) + 1, 6)); // 计算需要几行来显示
-        Inventory preview = Bukkit.createInventory(null, rows * 9, ColorT.t("&8预览: " + kitName));
+        int rows = Math.max(1, Math.min((config.getItems().size() / 9) + 1, 6)); // 计算需要几行来显示，最多6行
+        Inventory preview = Bukkit.createInventory(null, rows * 9, ColorT.t("&8预览 " + kitName));
 
         int slot = 0;
         for (CustomItem customItem : config.getItems()) {

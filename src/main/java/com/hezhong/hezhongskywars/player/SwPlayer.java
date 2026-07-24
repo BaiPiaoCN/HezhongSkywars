@@ -39,14 +39,6 @@ public class SwPlayer {
         scoreBoardObjective.setDisplaySlot(DisplaySlot.SIDEBAR);
         player.setScoreboard(scoreBoard);
     }
-    // TODO: 完成统计和持久化后，记得更新这里
-    // 包括入服后缓存数据，退服时持久化保存数据
-
-    public void refreshScoreBoard() {
-        if (playingGame != null) {
-
-        }
-    }
 
     public boolean joinGame(Game g) {
         if (playingGame != null) {
@@ -57,9 +49,19 @@ public class SwPlayer {
         return true;
     }
 
+    public boolean hasKit(SwPlayerKit kit) {
+        String kitName = kit.kitName;
+        boolean has = stats.kits.stream().anyMatch(k -> k.kitName == kitName);
+        return has;
+    }
+    public boolean hasKit(String kitName) {
+        boolean has = stats.kits.stream().anyMatch(k -> k.kitName == kitName);
+        return has;
+    }
+
     @Getter
     @Setter
-    public class SwPlayerSetupMapStatus {
+    public static class SwPlayerSetupMapStatus {
         private Block controllingBlock = null;
         private boolean listeningChat = false;
 
@@ -72,11 +74,12 @@ public class SwPlayer {
         }
     }
 
+
     @Getter
     @Setter
-    public class PlayerKit {
+    public static class SwPlayerKit {
         private final String kitName;
-        public PlayerKit(String kitName) {
+        public SwPlayerKit(String kitName) {
             this.kitName = kitName;
         }
     }

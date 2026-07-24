@@ -49,7 +49,7 @@ public class CommandProcessor implements CommandExecutor {
 
         for (HezhongSkywarsCommand cmd : commands) {
             if (Objects.equals(args[0], cmd.getCommandName())) {
-                if (!cmd.enoughPermission(cs)) {
+                if (!cmd.canExecute(cs)) {
                     cs.sendMessage(ColorT.t("&c命令权限不足，配置&e" + "hsw.command." + cmd.getCommandName() + "&c节点！"));
                     return true;
                 }

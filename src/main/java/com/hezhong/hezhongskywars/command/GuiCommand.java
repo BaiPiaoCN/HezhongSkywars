@@ -1,7 +1,10 @@
 package com.hezhong.hezhongskywars.command;
 
+import com.hezhong.hezhongskywars.HezhongSkywars;
 import com.hezhong.hezhongskywars.gui.HezhongSkywarsGUI;
 import com.hezhong.hezhongskywars.gui.impl.KitSelectGUI;
+import com.hezhong.hezhongskywars.manager.SwPlayerManager;
+import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.utils.ColorT;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -21,12 +24,15 @@ public class GuiCommand extends HezhongSkywarsCommand {
         String gui = args[1];
         if (cs instanceof Player) {
             Player p = (Player) cs;
-            HezhongSkywarsGUI hswGUI = null;
-            if (gui.equals("kitSelector")) {
-                hswGUI = new KitSelectGUI(p);
-            }
-            if (hswGUI != null) {
-                hswGUI.open();
+            SwPlayer sp = SwPlayerManager.getPlayer(p);
+            if (sp != null) {
+                HezhongSkywarsGUI hswGUI = null;
+                if (gui.equals("kitSelector")) {
+                    hswGUI = new KitSelectGUI(p, sp);
+                }
+                if (hswGUI != null) {
+                    hswGUI.open();
+                }
             }
         }
     }

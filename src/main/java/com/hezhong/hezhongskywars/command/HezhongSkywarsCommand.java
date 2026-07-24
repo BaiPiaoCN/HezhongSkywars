@@ -16,7 +16,7 @@ public abstract class HezhongSkywarsCommand {
         this.description = description;
     }
 
-    public boolean enoughPermission(CommandSender cs) {
+    public boolean canExecute(CommandSender cs) {
         if (!permission) return true;
         return cs.hasPermission("hsw.command." + commandName);
     }

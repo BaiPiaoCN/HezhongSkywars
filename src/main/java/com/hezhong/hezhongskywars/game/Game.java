@@ -136,6 +136,9 @@ public class Game {
                     }
                 }
             }
+
+            SwPlayer sp = SwPlayerManager.getPlayer(player);
+            sp.getStats().gamesPlayed++;
         }
         gameEventRunner();
     }
@@ -205,14 +208,15 @@ public class Game {
         if (gameStatus == GameStatus.PLAYING) { // 此时游戏还在进行
             killed.getInventory().clear();
             if (killer != null && !quit) { // 被杀了
+                // TODO: 编写助攻系统
                 SwPlayingGamePlayer swpgpKilled = playingPlayerStatus.get(killed.getUniqueId());
                 if (swpgpKilled.getStatus() == SwPlayingGamePlayer.PlayerStatus.ALIVE) {
                     SwPlayingGamePlayer swpgpKiller = playingPlayerStatus.get(killer.getUniqueId());
                     swpgpKiller.setKills(swpgpKiller.getKills() + 1);
-                    killerSp.getStats().kills++;
+                    killerSp.getStats().addKills();
+
                     swpgpKilled.setStatus(SwPlayingGamePlayer.PlayerStatus.DEAD);
                     sp.getStats().deaths++;
-                    // TODO: 此处预留，需要持久化保存统计数据
                     killed.getInventory().clear();
                     killed.spigot().respawn();
                     killed.teleport(location);
@@ -310,7 +314,7 @@ public class Game {
         for (Player winner : getAlivePlayers()) {
             SwPlayer sp = SwPlayerManager.getPlayer(winner);
             TitleAPI.sendTitle(winner, 0, 90, 10, ColorT.t("&e&lVICTORY"));
-            sp.getStats().wins++;
+            sp.getStats().addWins();
         }
 
         // 烟花声庆祝

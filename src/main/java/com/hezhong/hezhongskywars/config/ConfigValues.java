@@ -1,5 +1,6 @@
 package com.hezhong.hezhongskywars.config;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,4 +15,9 @@ public class ConfigValues {
     public static Map<String, ChestConfig> chestConfigs = new HashMap<>(); // K:V type:config
     public static Map<String, MapConfig> mapConfigs = new HashMap<>(); // K:V mapName:config
     public static Map<String, KitConfig> kitConfigs = new HashMap<>(); // K:V kitName:config
+    public static int coinsWinAdd;
+    public static int coinsKillAdd;
+    public static int expWinAdd;
+    public static int expKillAdd;
+    public static List<Integer> levelNeedExps = new ArrayList<>();
 }
