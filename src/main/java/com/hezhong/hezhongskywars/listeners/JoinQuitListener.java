@@ -62,7 +62,5 @@ public class JoinQuitListener implements Listener {
                 HezhongSkywars.INSTANCE.getDatabase().writingPlayers.remove(uuid);
             });
         }
-
-
     }
 }

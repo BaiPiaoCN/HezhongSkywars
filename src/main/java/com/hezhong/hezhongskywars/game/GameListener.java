@@ -1,13 +1,9 @@
 package com.hezhong.hezhongskywars.game;
 
 import com.hezhong.hezhongskywars.HezhongSkywars;
-import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.events.HSWGameStartEvent;
-import com.hezhong.hezhongskywars.manager.GameManager;
 import com.hezhong.hezhongskywars.manager.SwPlayerManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
-import com.hezhong.hezhongskywars.utils.SpecialItems;
-import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,15 +12,10 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.inventory.ItemStack;
-
-import java.util.Objects;
 
 public class GameListener implements Listener {
     @EventHandler
@@ -103,6 +94,7 @@ public class GameListener implements Listener {
         SwPlayer sp = SwPlayerManager.getPlayer(p);
         if (sp == null) return;
         if (sp.getPlayingGame() != null) {
+            // 换世界了，就是退游戏了
             Game playingGame = sp.getPlayingGame();
             playingGame.processDeath(p, null, true);
         }
@@ -158,12 +150,24 @@ public class GameListener implements Listener {
                 if (sp == null) return;
                 Game playingGame = sp.getPlayingGame();
                 if (playingGame != null) {
-                    SwPlayingGamePlayer swpgp = playingGame.getPlayingPlayer(damagerPlayer.getUniqueId());
-                    if (swpgp.getStatus() != SwPlayingGamePlayer.PlayerStatus.ALIVE) e.setCancelled(true);
+                    // 1 不允许死去的玩家攻击
+                    SwPlayingGamePlayer swpgpDamager = playingGame.getPlayingPlayer(damagerPlayer.getUniqueId());
+                    if (swpgpDamager.getStatus() != SwPlayingGamePlayer.PlayerStatus.ALIVE) {
+                        e.setCancelled(true);
+                        return; // 不继续执行下面的代码，避免统计错误
+                    } else {
+                        // 保险起见，也是为了控制流清晰，加else
+                        // 没人改掉吧？
+
+                        // 2 保存伤害数据
+                        SwPlayingGamePlayer swpgpDamaged = playingGame.getPlayingPlayer(p.getUniqueId());
+                        swpgpDamaged.totalDamage += e.getDamage();
+                        swpgpDamaged.getDamageByAttack().put(damagerPlayer.getUniqueId(), e.getDamage());
+                    }
                 }
             }
         }
     }
 
-    // Quit处理在#com.hezhong.hezhongskywars.listeners.JoinQuitListener
+    // Join/Quit处理集中在#com.hezhong.hezhongskywars.listeners.JoinQuitListener
 }

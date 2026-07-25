@@ -54,9 +54,28 @@ public class SwPlayer {
         boolean has = stats.kits.stream().anyMatch(k -> k.kitName == kitName);
         return has;
     }
+
     public boolean hasKit(String kitName) {
         boolean has = stats.kits.stream().anyMatch(k -> k.kitName == kitName);
         return has;
+    }
+
+    public void addKills() {
+        stats.kills++;
+        stats.exps += ConfigValues.expKillAdd;
+        stats.coins += ConfigValues.coinsKillAdd;
+    }
+
+    public void addWins() {
+        stats.wins++;
+        stats.exps += ConfigValues.expWinAdd;
+        stats.coins += ConfigValues.coinsWinAdd;
+    }
+
+    public void addAssists(int coinsA, int expsA) {
+        stats.assists++;
+        stats.exps += expsA;
+        stats.coins += coinsA;
     }
 
     @Getter
@@ -79,6 +98,7 @@ public class SwPlayer {
     @Setter
     public static class SwPlayerKit {
         private final String kitName;
+
         public SwPlayerKit(String kitName) {
             this.kitName = kitName;
         }
