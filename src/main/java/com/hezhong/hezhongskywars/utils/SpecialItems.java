@@ -24,7 +24,7 @@ public class SpecialItems {
         return nbt.getBoolean("kitSelector");
     }
     public static ItemStack lobbyTeleporter() {
-        ItemStack i = XMaterial.COMPASS.parseItem();
+        ItemStack i = XMaterial.REDSTONE.parseItem();
         ItemMeta m = i.getItemMeta();
         m.setDisplayName(ColorT.t("&c&l返回大厅"));
         i.setItemMeta(m);
@@ -37,4 +37,19 @@ public class SpecialItems {
         ReadableNBT nbt = NBT.readNbt(i);
         return nbt.getBoolean("lobbyTeleporter");
     }
+    public static ItemStack hubGUI() {
+        ItemStack i = XMaterial.COMPASS.parseItem();
+        ItemMeta m = i.getItemMeta();
+        m.setDisplayName(ColorT.t("&c&l返回大厅"));
+        i.setItemMeta(m);
+        NBT.modify(i, nbt -> {
+            nbt.setBoolean("hubGUI", true);
+        });
+        return i;
+    }
+    public static boolean isHubGUI(ItemStack i) {
+        ReadableNBT nbt = NBT.readNbt(i);
+        return nbt.getBoolean("hubGUI");
+    }
+
 }

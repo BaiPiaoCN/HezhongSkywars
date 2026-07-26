@@ -15,6 +15,7 @@ import com.hezhong.hezhongskywars.manager.SwPlayerManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.setup.SetupListener;
 import com.hezhong.hezhongskywars.task.PlayerScoreBoardTask;
+import com.hezhong.hezhongskywars.task.ServerDatabaseUpdateTask;
 import com.hezhong.hezhongskywars.utils.ColorT;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -78,6 +79,7 @@ public enum HezhongSkywars {
 
         // 任务
         new PlayerScoreBoardTask().runTaskTimer(plugin, 0, 10);
+        new ServerDatabaseUpdateTask().runTaskTimerAsynchronously(plugin, 0, 60 * 20);
 
 
 

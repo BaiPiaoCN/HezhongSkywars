@@ -36,7 +36,6 @@ public class JoinQuitListener implements Listener {
             HezhongSkywars.INSTANCE.getLogger().warning("HSW LobbyWorld is Null?");
         }
 
-
         Bukkit.getScheduler().runTaskAsynchronously(HezhongSkywars.INSTANCE.getPlugin(), () -> {
             p.setStats(HezhongSkywars.INSTANCE.getDatabase().getDatabaseStats(player.getUniqueId()));
         });

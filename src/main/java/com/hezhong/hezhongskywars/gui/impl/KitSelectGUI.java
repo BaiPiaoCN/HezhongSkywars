@@ -5,7 +5,7 @@ import com.hezhong.hezhongskywars.HezhongSkywars;
 import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.config.KitConfig;
 import com.hezhong.hezhongskywars.gui.GUIListener;
-import com.hezhong.hezhongskywars.gui.HezhongSkywarsGUI;
+import com.hezhong.hezhongskywars.gui.MultiPageGUI;
 import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.utils.ColorT;
 import com.hezhong.hezhongskywars.utils.type.CustomItem;
@@ -22,26 +22,43 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class KitSelectGUI extends HezhongSkywarsGUI {
+public class KitSelectGUI extends MultiPageGUI {
 
     private static final int ROWS = 6;
     private final Map<Integer, String> slotKitMap = new HashMap<>();
+    private final List<String> kitOrder = new ArrayList<>();
 
     public KitSelectGUI(Player player, SwPlayer swPlayer) {
-        super(player, swPlayer, "&8选择职业", ROWS);
+        super(player, swPlayer, "&8选择职业", ROWS, createPageItem("&a下一页"), createPageItem("&a上一页"));
         build();
     }
-
     private void build() {
         int slot = 0;
         for (Map.Entry<String, KitConfig> entry : ConfigValues.kitConfigs.entrySet()) {
             String name = entry.getKey();
             KitConfig config = entry.getValue();
 
-            ItemStack displayItem = buildDisplayItem(name, config);
-            inventory.setItem(slot, displayItem);
-            slotKitMap.put(slot, name);
+            multiPageInventory.put(slot, buildDisplayItem(name, config));
+            kitOrder.add(name); // 按顺序，所有职业的列表
             slot++;
+        }
+        showPage();
+    }
+
+    @Override
+    protected void showPage() {
+        slotKitMap.clear();
+        super.showPage();
+
+        // 我怎么忘了计算这玩意
+
+
+        int itemsPerPage = (ROWS - 1) * 9; // MultiPageGUI占用最后一行，因此我们只用rows - 1行
+        int start = currentPage * itemsPerPage; // 0-based，不需要+1
+        int end = Math.min(start + itemsPerPage, kitOrder.size());
+
+        for (int i = start; i < end; i++) {
+            slotKitMap.put(i - start, kitOrder.get(i));
         }
     }
 
@@ -83,20 +100,19 @@ public class KitSelectGUI extends HezhongSkywarsGUI {
     }
 
     @Override
-    public void handleClick(InventoryClickEvent event) {
+    public void handleMultiPageClick(InventoryClickEvent event) {
         int slot = event.getSlot();
+
         String kitName = slotKitMap.get(slot);
         if (kitName == null) return;
 
         Player player = owner;
 
         if (event.isLeftClick()) {
-            // 左键
             player.closeInventory();
             player.performCommand("hsw selectKit " + kitName);
 
         } else if (event.isRightClick()) {
-            // 右键
             player.closeInventory();
             Bukkit.getScheduler().runTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
                 KitConfig config = ConfigValues.kitConfigs.get(kitName);
@@ -107,7 +123,7 @@ public class KitSelectGUI extends HezhongSkywarsGUI {
     }
 
     private void openPreview(String kitName, KitConfig config) {
-        int rows = Math.max(1, Math.min((config.getItems().size() / 9) + 1, 6)); // 计算需要几行来显示，最多6行
+        int rows = Math.max(1, Math.min((config.getItems().size() / 9) + 1, 6));
         Inventory preview = Bukkit.createInventory(null, rows * 9, ColorT.t("&8预览 " + kitName));
 
         int slot = 0;

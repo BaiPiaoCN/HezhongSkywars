@@ -37,11 +37,14 @@ public class GeneralListener implements Listener {
             // 获取手持物品
             ItemStack held = p.getItemInHand();
             if (SpecialItems.isKitSelector(held)) {
-                p.performCommand("hsw kitSelectorGUI");
+                p.performCommand("hsw gui kitSelector");
             }
             if (SpecialItems.isLobbyTeleporter(held)) {
                 p.performCommand("hsw hub");
                 p.sendMessage(ColorT.t("&a传送到大厅"));
+            }
+            if (SpecialItems.isHubGUI(held)) {
+                p.performCommand("hsw gui main");
             }
         }
     }

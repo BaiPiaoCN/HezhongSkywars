@@ -488,6 +488,9 @@ public class Game {
         SwPlayingGamePlayer swpgp = playingPlayerStatus.get(pp.getUniqueId());
         swpgp.setStatus(SwPlayingGamePlayer.PlayerStatus.SPECTATE);
         pp.setGameMode(GameMode.ADVENTURE);
+        pp.getInventory().clear();
+        pp.getInventory().setArmorContents(null);
+        pp.getInventory().setItem(8, SpecialItems.lobbyTeleporter());
         pp.setAllowFlight(true);
         pp.setFlying(true);
         for (Player aP : getAlivePlayers()) {

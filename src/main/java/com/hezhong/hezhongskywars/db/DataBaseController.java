@@ -9,10 +9,7 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -21,6 +18,8 @@ public class DataBaseController {
     private final IDataBase db;
     public final Set<UUID> writingPlayers = new CopyOnWriteArraySet<>(); // 用于存储退出后，写数据库还没完成的玩家信息
     // 在数据库写完前，不允许玩家进入服务器，避免数据丢失
+
+    public volatile List<DatabaseStatsData> allDatas = new ArrayList<>();
 
 
     public DataBaseController() {
