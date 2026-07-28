@@ -12,6 +12,7 @@ import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class SQLiteDataBase implements IDataBase {
@@ -54,7 +55,6 @@ public class SQLiteDataBase implements IDataBase {
 
             try (Connection connection = dataSource.getConnection();
                  Statement stmt = connection.createStatement()) {
-                // Apply PRAGMAs via explicit statements (data source properties can fail for returning PRAGMAs)
                 stmt.execute("PRAGMA journal_mode=WAL");
                 stmt.execute("PRAGMA foreign_keys=ON");
                 stmt.execute("PRAGMA busy_timeout=5000");
@@ -130,6 +130,23 @@ public class SQLiteDataBase implements IDataBase {
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to set database stats", e);
+        }
+    }
+
+    @Override
+    public void setAllDatabaseStats(Map<UUID, DatabaseStatsData> allStats) {
+        String sql = "INSERT OR REPLACE INTO " + tableNamePrefix + "_stats (uuid, stats) VALUES (?, ?)";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            for (Map.Entry<UUID, DatabaseStatsData> entry : allStats.entrySet()) {
+                String json = gson.toJson(entry.getValue());
+                pstmt.setString(1, entry.getKey().toString());
+                pstmt.setString(2, json);
+                pstmt.addBatch();
+            }
+            pstmt.executeBatch();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to set all database stats", e);
         }
     }
 

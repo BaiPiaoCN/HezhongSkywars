@@ -40,7 +40,7 @@ public class SpecialItems {
     public static ItemStack hubGUI() {
         ItemStack i = XMaterial.COMPASS.parseItem();
         ItemMeta m = i.getItemMeta();
-        m.setDisplayName(ColorT.t("&c&l返回大厅"));
+        m.setDisplayName(ColorT.t("&a&l面板"));
         i.setItemMeta(m);
         NBT.modify(i, nbt -> {
             nbt.setBoolean("hubGUI", true);

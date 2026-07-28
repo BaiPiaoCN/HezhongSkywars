@@ -7,12 +7,14 @@ import com.hezhong.hezhongskywars.manager.SwPlayerManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.task.PlayerScoreBoardTask;
 import com.hezhong.hezhongskywars.utils.ColorT;
+import com.hezhong.hezhongskywars.utils.SpecialItems;
 import com.hezhong.hezhongskywars.utils.type.DatabaseStatsData;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -21,14 +23,14 @@ import java.util.UUID;
 public class JoinQuitListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
+        final Player player = event.getPlayer();
         if (HezhongSkywars.INSTANCE.getDatabase().writingPlayers.contains(player.getUniqueId())) {
             player.kickPlayer(ColorT.t("&b&lHSW &a你的数据还未刷新，请等待一下再进入！"));
             return;
         }
         World lobbyWorld = Bukkit.getWorld(ConfigValues.lobbyWorld);
         SwPlayerManager.addPlayer(player);
-        SwPlayer p = SwPlayerManager.getPlayer(player);
+        final SwPlayer p = SwPlayerManager.getPlayer(player);
         if (lobbyWorld != null) {
             player.teleport(lobbyWorld.getSpawnLocation());
             p.setNextSpawnLocation(lobbyWorld.getSpawnLocation());
@@ -38,7 +40,15 @@ public class JoinQuitListener implements Listener {
 
         Bukkit.getScheduler().runTaskAsynchronously(HezhongSkywars.INSTANCE.getPlugin(), () -> {
             p.setStats(HezhongSkywars.INSTANCE.getDatabase().getDatabaseStats(player.getUniqueId()));
+            if (p.getStats() == null) {
+                p.setStats(new DatabaseStatsData(player.getUniqueId(), player.getName()));
+            }
+            p.getStats().REFRESHED = true;
         });
+
+        player.getInventory().clear();
+        player.getInventory().setArmorContents(null);
+        player.getInventory().setItem(0, SpecialItems.hubGUI());
     }
 
     @EventHandler
@@ -53,13 +63,19 @@ public class JoinQuitListener implements Listener {
             }
             SwPlayerManager.removePlayer(event.getPlayer());
             // 写数据（持有sp对象）
-            DatabaseStatsData data = sp.getStats();
+            final DatabaseStatsData data = sp.getStats();
             UUID uuid = event.getPlayer().getUniqueId();
             HezhongSkywars.INSTANCE.getDatabase().writingPlayers.add(uuid);
+
             Bukkit.getScheduler().runTaskAsynchronously(HezhongSkywars.INSTANCE.getPlugin(), () -> {
-                HezhongSkywars.INSTANCE.getDatabase().setDatabaseStats(uuid, data);
-                HezhongSkywars.INSTANCE.getDatabase().writingPlayers.remove(uuid);
+                if (data.REFRESHED) {
+                    HezhongSkywars.INSTANCE.getLogger().info("Saving data for " + uuid);
+                    HezhongSkywars.INSTANCE.getDatabase().setDatabaseStats(uuid, data);
+                    HezhongSkywars.INSTANCE.getDatabase().writingPlayers.remove(uuid);
+                    HezhongSkywars.INSTANCE.getLogger().info("Saved data for " + uuid);
+                }
             });
         }
     }
+
 }

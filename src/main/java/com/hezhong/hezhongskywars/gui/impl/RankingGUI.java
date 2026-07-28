@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RankingGUI extends MultiPageGUI {
 
@@ -67,7 +68,9 @@ public class RankingGUI extends MultiPageGUI {
     private void build() {
         multiPageInventory.clear();
 
-        List<DatabaseStatsData> allDatas = HezhongSkywars.INSTANCE.getDatabase().allDatas;
+        List<DatabaseStatsData> allDatas = new ArrayList<>(
+            HezhongSkywars.INSTANCE.getDatabase().allDatas.values()
+        );
         if (allDatas == null || allDatas.isEmpty()) {
             showPage();
             return;
@@ -87,10 +90,10 @@ public class RankingGUI extends MultiPageGUI {
             meta.setDisplayName(ColorT.t("&6当前指标：&e" + metric.getName()));
             String prev = "无";
             String next = "无";
-            if (m < metrics.length) {
+            if (m < metrics.length - 1) {
                 next = metrics[m + 1].getName();
             }
-            if (m > 1) {
+            if (m >= 1) {
                 prev = metrics[m - 1].getName();
             }
 
@@ -98,6 +101,7 @@ public class RankingGUI extends MultiPageGUI {
             metricFlag.setItemMeta(meta);
             multiPageInventory.put(slot++, metricFlag);
 
+            int remainSlots = 9 * (ROWS - 1) - 1; // -1是有指标
             for (DatabaseStatsData data : sorted) {
                 ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.get());
                 ItemMeta pMeta = item.getItemMeta();
@@ -105,6 +109,12 @@ public class RankingGUI extends MultiPageGUI {
                 pMeta.setLore(ColorT.t(Collections.singletonList("&7" + metric.getName() + "：&f" + metric.getValue(data))));
                 item.setItemMeta(pMeta);
                 multiPageInventory.put(slot++, item);
+                remainSlots--;
+            }
+            if (remainSlots > 0) {
+                for (int i = 1; i <= remainSlots; i++) {
+                    multiPageInventory.put(slot++, new ItemStack(XMaterial.AIR.get()));
+                }
             }
         }
 

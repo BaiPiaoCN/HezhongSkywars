@@ -35,6 +35,10 @@ public class SelectKitCommand extends HezhongSkywarsCommand {
             } else {
                 if (ConfigValues.kitConfigs.containsKey(kitName)) {
                     KitConfig kit = ConfigValues.kitConfigs.get(kitName);
+                    if (sp.hasKit(kitName)) {
+                        p.sendMessage(ColorT.t("&a你已经拥有 &e" + kitName + " &a职业！"));
+                        return;
+                    }
                     if (sp.getStats().coins >= kit.getCoins() || kit.getCoins() <= 0) {
                         sp.getStats().coins -= kit.getCoins();
                         sp.getStats().kits.add(new SwPlayer.SwPlayerKit(kitName));

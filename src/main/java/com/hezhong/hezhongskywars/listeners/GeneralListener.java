@@ -1,13 +1,9 @@
 package com.hezhong.hezhongskywars.listeners;
 
 
+import com.cryptomorin.xseries.XMaterial;
 import com.hezhong.hezhongskywars.config.ConfigValues;
-import com.hezhong.hezhongskywars.gui.GUIListener;
-import com.hezhong.hezhongskywars.gui.HezhongSkywarsGUI;
-import com.hezhong.hezhongskywars.gui.impl.KitSelectGUI;
-import com.hezhong.hezhongskywars.utils.ColorT;
 import com.hezhong.hezhongskywars.utils.SpecialItems;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,11 +17,16 @@ import java.util.Objects;
 public class GeneralListener implements Listener {
     @EventHandler
     public void onChangeWorld(PlayerChangedWorldEvent e) {
-        Player p = e.getPlayer();
+        Player player = e.getPlayer();
 
-        if (Objects.equals(p.getWorld().getName(), ConfigValues.lobbyWorld)) {
+        if (Objects.equals(player.getWorld().getName(), ConfigValues.lobbyWorld)) {
+
+            player.getInventory().clear();
+            player.getInventory().setArmorContents(null);
+
+            player.getInventory().setItem(0, SpecialItems.hubGUI());
             ItemStack kitSelector = SpecialItems.kitSelector();
-            p.getInventory().addItem(kitSelector);
+            player.getInventory().setItem(1, kitSelector);
         }
     }
     // 用于处理右键物品的效果
@@ -36,12 +37,13 @@ public class GeneralListener implements Listener {
         if (action == Action.RIGHT_CLICK_BLOCK || action == Action.RIGHT_CLICK_AIR) {
             // 获取手持物品
             ItemStack held = p.getItemInHand();
+            if (held == null) return;
+            if (held.getType().equals(XMaterial.AIR.get())) return;
             if (SpecialItems.isKitSelector(held)) {
                 p.performCommand("hsw gui kitSelector");
             }
             if (SpecialItems.isLobbyTeleporter(held)) {
                 p.performCommand("hsw hub");
-                p.sendMessage(ColorT.t("&a传送到大厅"));
             }
             if (SpecialItems.isHubGUI(held)) {
                 p.performCommand("hsw gui main");

@@ -29,6 +29,11 @@ public class SwPlayer {
     private SwPlayerSetupMapStatus setupMapStatus = new SwPlayerSetupMapStatus();
     private Location nextSpawnLocation;
 
+    // 独立世界功能会利用隐藏玩家来控制TAB
+    // 为了避免控制TAB的隐藏和游戏中旁观者隐藏打架，我们需要这个Set
+    // 此Set非TAB控制隐藏的所有隐藏。
+    private Set<Player> hideList = new HashSet<>();
+
 
     public SwPlayer(Player player) {
         this.player = player;
@@ -51,12 +56,12 @@ public class SwPlayer {
 
     public boolean hasKit(SwPlayerKit kit) {
         String kitName = kit.kitName;
-        boolean has = stats.kits.stream().anyMatch(k -> k.kitName == kitName);
+        boolean has = stats.kits.stream().anyMatch(k -> k.kitName.equals(kitName));
         return has;
     }
 
     public boolean hasKit(String kitName) {
-        boolean has = stats.kits.stream().anyMatch(k -> k.kitName == kitName);
+        boolean has = stats.kits.stream().anyMatch(k -> k.kitName.equals(kitName));
         return has;
     }
 
@@ -76,6 +81,13 @@ public class SwPlayer {
         stats.assists++;
         stats.exps += expsA;
         stats.coins += coinsA;
+    }
+
+    public void hidePlayer(Player target) {
+        // 老版本必须使用单参数方法。新版Bukkit兼容。
+        player.hidePlayer(target);
+
+        hideList.add(target);
     }
 
     @Getter

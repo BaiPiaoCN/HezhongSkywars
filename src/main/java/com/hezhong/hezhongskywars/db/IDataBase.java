@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public interface IDataBase {
@@ -18,7 +19,8 @@ public interface IDataBase {
     // 设置器
     DatabaseStatsData getDatabaseStats(UUID pp);
     void setDatabaseStats(UUID pp, DatabaseStatsData stats);
-    List<DatabaseStatsData> getAllDatabaseStats(); // 用于展示
+    void setAllDatabaseStats(Map<UUID, DatabaseStatsData> allStats);
+    List<DatabaseStatsData> getAllDatabaseStats();
 
     // 状态
     void connect();

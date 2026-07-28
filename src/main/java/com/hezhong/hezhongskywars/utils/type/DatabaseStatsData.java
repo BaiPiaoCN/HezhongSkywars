@@ -11,6 +11,8 @@ import java.util.UUID;
 public class DatabaseStatsData {
     public UUID uuid = null;
     public String playerName = "";
+    public boolean REFRESHED = false;
+
     public int kills = 0;
     public int assists = 0;
     public int deaths = 0;

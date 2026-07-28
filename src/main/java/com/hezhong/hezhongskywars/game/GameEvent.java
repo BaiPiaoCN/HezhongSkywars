@@ -12,7 +12,19 @@ public final class GameEvent {
     }
 
     public enum EventType {
-        RESETCHEST,
-        STOPGAME;
+        RESET_CHEST {
+            @Override
+            public String getEventName() {
+                return "重置箱子";
+            }
+        },
+        STOP_GAME {
+            @Override
+            public String getEventName() {
+                return "结束游戏";
+            }
+        };
+
+        public abstract String getEventName();
     }
 }

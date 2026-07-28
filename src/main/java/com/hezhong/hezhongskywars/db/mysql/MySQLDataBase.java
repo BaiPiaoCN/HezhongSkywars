@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class MySQLDataBase implements IDataBase {
@@ -135,6 +136,25 @@ public class MySQLDataBase implements IDataBase {
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to set database stats", e);
+        }
+    }
+
+    @Override
+    public void setAllDatabaseStats(Map<UUID, DatabaseStatsData> allStats) {
+        String sql = "INSERT INTO " + tableNamePrefix + "_stats (uuid, stats) VALUES (?, ?) " +
+                "ON DUPLICATE KEY UPDATE stats = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            for (Map.Entry<UUID, DatabaseStatsData> entry : allStats.entrySet()) {
+                String json = gson.toJson(entry.getValue());
+                pstmt.setString(1, entry.getKey().toString());
+                pstmt.setString(2, json);
+                pstmt.setString(3, json);
+                pstmt.addBatch();
+            }
+            pstmt.executeBatch();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to set all database stats", e);
         }
     }
 

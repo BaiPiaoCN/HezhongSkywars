@@ -2,6 +2,7 @@ package com.hezhong.hezhongskywars.task;
 
 import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.game.Game;
+import com.hezhong.hezhongskywars.game.GameEvent;
 import com.hezhong.hezhongskywars.game.GameStatus;
 import com.hezhong.hezhongskywars.game.SwPlayingGamePlayer;
 import com.hezhong.hezhongskywars.manager.SwPlayerManager;
@@ -52,8 +53,6 @@ public class PlayerScoreBoardTask extends BukkitRunnable {
         objective.setDisplayName(ColorT.t(ConfigValues.serverName));
 
         String[] lines = {
-                "",
-                "",
                 "&e/hsw join &a加入游戏",
                 "",
                 "" + ConfigValues.serverIp,
@@ -100,14 +99,19 @@ public class PlayerScoreBoardTask extends BukkitRunnable {
                 int alive = game.getAlivePlayers().size();
                 int total = game.getAllPlayers().size();
 
+                GameEvent nextEvent = null;
+                if (game.getEventsInFuture() != null && !game.getEventsInFuture().isEmpty()) {
+                    nextEvent =  game.getEventsInFuture().get(0);
+                }
+
                 objective.setDisplayName(ColorT.t("&c&lSkywars ⚔"));
                 lines = new String[]{
                         "&7&m----------------",
                         "&c击杀: &f" + kills,
-                        "",
                         "&a存活: &f" + alive + "&7/&f" + total,
                         "",
                         "&e时间: &f" + formatTime(game.getRunnedTime()),
+                        "&e下一事件: &f" + (nextEvent == null ? "无" : nextEvent.getType().getEventName()),
                         "",
                         "&b职业: &f" + game.getPlayerKit(player),
                         "&7&m----------------"
@@ -140,7 +144,7 @@ public class PlayerScoreBoardTask extends BukkitRunnable {
         List<Team> teams = teamCache.computeIfAbsent(uuid, k -> new ArrayList<>());
 
         // 动态注销Team，防止堆积
-        // AI Code™
+        // AI Coded™
         while (teams.size() > lines.length) {
             Team team = teams.remove(teams.size() - 1);
             team.unregister();
@@ -162,6 +166,8 @@ public class PlayerScoreBoardTask extends BukkitRunnable {
             Team team = teams.get(i);
             String text = ColorT.t(lines[i]);
 
+            // 避免字符串过长而遭踢出
+            // 使用分段策略
             if (text.length() <= 16) {
                 team.setPrefix(text);
                 team.setSuffix("");

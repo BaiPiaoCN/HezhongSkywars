@@ -11,6 +11,7 @@ import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.utils.ColorT;
 import com.hezhong.hezhongskywars.utils.SimpleMath;
 import com.hezhong.hezhongskywars.utils.SpecialItems;
+import com.hezhong.hezhongskywars.utils.bukkit.CTask;
 import com.hezhong.hezhongskywars.utils.type.CustomItem;
 import com.hezhong.hezhongskywars.utils.type.Pair;
 import lombok.Getter;
@@ -43,8 +44,8 @@ public class Game {
     private final List<GameEvent> eventsInFuture; // 还没执行的事件，[0]即下一个事件，用于计分板
     private String winnerName = "";
     // 游戏需要的Tasks
-    private BukkitTask countdownTask;
-    private BukkitTask eventRunnerTask;
+    private CTask countdownTask;
+    private CTask eventRunnerTask;
 
     private final int countdown;
     private int countdownRemaining;
@@ -130,10 +131,12 @@ public class Game {
             SwPlayingGamePlayer swpgp = playingPlayerStatus.get(player.getUniqueId());
             // 把职业物品给玩家
             if (swpgp.getStatus() == SwPlayingGamePlayer.PlayerStatus.ALIVE) { // 保险
-                if (!Objects.equals(swpgp.getSelectedKit(), "")) {
+                if (!Objects.equals(swpgp.getSelectedKit(), "None")) {
                     KitConfig kit = ConfigValues.kitConfigs.get(swpgp.getSelectedKit());
-                    for (CustomItem customItem : kit.getItems()) {
-                        player.getInventory().addItem(customItem.toItem());
+                    if (kit != null) {
+                        for (CustomItem customItem : kit.getItems()) {
+                            player.getInventory().addItem(customItem.toItem());
+                        }
                     }
                 }
             }
@@ -275,7 +278,7 @@ public class Game {
                 }
             }
 
-        } else if (gameStatus == GameStatus.WAITING || gameStatus == GameStatus.STOPPED) {
+        } else if (gameStatus == GameStatus.WAITING || gameStatus == GameStatus.STOPPED || gameStatus == GameStatus.RESETTING) {
             if (!quit) {
                 killed.spigot().respawn();
                 killed.teleport(location);
@@ -428,7 +431,7 @@ public class Game {
     private void countdownAndAutoStart() {
         if (countdownTask == null || countdownTask.isCancelled()) {
             AtomicInteger time = new AtomicInteger(countdown);
-            countdownTask = Bukkit.getScheduler().runTaskTimer(HezhongSkywars.INSTANCE.getPlugin(), () -> {
+            countdownTask = new CTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
                 if (getAlivePlayers().size() < ConfigValues.mapConfigs.get(mapName).getMinPlayersToAutostart()) {
                     for (Player player : allPlayers) {
                         TitleAPI.sendTitle(player, 0, 60, 20, ColorT.t("&e倒计时取消"), ColorT.t("&c人数不足！至少需要 " + ConfigValues.mapConfigs.get(mapName).getMinPlayersToAutostart() + " 人"));
@@ -459,20 +462,21 @@ public class Game {
                 }
                 countdownRemaining = time.get();
                 time.getAndDecrement();
-            }, 0, 20);
+            });
+            countdownTask.runTimer(20, 0);
         }
     }
 
     private void gameEventRunner() {
-        eventRunnerTask = Bukkit.getScheduler().runTaskTimer(HezhongSkywars.INSTANCE.getPlugin(), () -> {
+        eventRunnerTask = new CTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
             runnedTime++;
             for (GameEvent e : events) {
                 if (e.getTime() == runnedTime) {
-                    if (e.getType().equals(GameEvent.EventType.RESETCHEST)) {
+                    if (e.getType().equals(GameEvent.EventType.RESET_CHEST)) {
                         refreshAllChests();
                         playSound(XSound.BLOCK_CHEST_OPEN);
                     }
-                    if (e.getType().equals(GameEvent.EventType.STOPGAME)) {
+                    if (e.getType().equals(GameEvent.EventType.STOP_GAME)) {
                         normalEnd();
                     }
                     eventsInFuture.remove(e);
@@ -481,7 +485,8 @@ public class Game {
             for (Player p : allPlayers) {
                 p.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, Integer.MAX_VALUE, 1));
             }
-        }, 0, 20);
+        });
+        eventRunnerTask.runTimer(20, 0);
     }
 
     private void toSpectate(Player pp) {

@@ -4,22 +4,27 @@ import com.hezhong.hezhongskywars.HezhongSkywars;
 import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.db.mysql.MySQLDataBase;
 import com.hezhong.hezhongskywars.db.sqlite.SQLiteDataBase;
+import com.hezhong.hezhongskywars.manager.SwPlayerManager;
+import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.utils.type.DatabaseStatsData;
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
-
+@Getter
 public class DataBaseController {
-    @Getter
+
     private final IDataBase db;
     public final Set<UUID> writingPlayers = new CopyOnWriteArraySet<>(); // 用于存储退出后，写数据库还没完成的玩家信息
     // 在数据库写完前，不允许玩家进入服务器，避免数据丢失
 
-    public volatile List<DatabaseStatsData> allDatas = new ArrayList<>();
+    @Setter
+    public volatile Map<UUID, DatabaseStatsData> allDatas = new ConcurrentHashMap<>();
 
 
     public DataBaseController() {
@@ -64,6 +69,16 @@ public class DataBaseController {
             db.setDatabaseStats(pp, stats);
         }
     }
+    public void setAllDatabaseStats(Map<UUID, DatabaseStatsData> allStats) {
+        if (Bukkit.isPrimaryThread()) {
+            HezhongSkywars.INSTANCE.getLogger().severe("Call database method with MAIN THREAD???");
+            return;
+        }
+        if (db != null) {
+            db.setAllDatabaseStats(allStats);
+        }
+    }
+
     public List<DatabaseStatsData> getAllDatabaseStats() {
         if (Bukkit.isPrimaryThread()) {
             HezhongSkywars.INSTANCE.getLogger().severe("Call database method with MAIN THREAD???");
@@ -72,5 +87,17 @@ public class DataBaseController {
         if (db != null) {
             return db.getAllDatabaseStats();
         } else return new ArrayList<>();
+    }
+
+    public void refreshAllDatasCache() {
+        List<DatabaseStatsData> all = getAllDatabaseStats();
+        for (DatabaseStatsData stats : all) {
+            UUID uuid = stats.uuid;
+            allDatas.put(uuid, stats);
+        }
+        for (SwPlayer sp : SwPlayerManager.getPlayers().values()) {
+            UUID uuid = sp.getPlayer().getUniqueId();
+            allDatas.put(uuid, sp.getStats());
+        }
     }
 }

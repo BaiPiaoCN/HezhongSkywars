@@ -17,14 +17,25 @@ import com.hezhong.hezhongskywars.setup.SetupListener;
 import com.hezhong.hezhongskywars.task.PlayerScoreBoardTask;
 import com.hezhong.hezhongskywars.task.ServerDatabaseUpdateTask;
 import com.hezhong.hezhongskywars.utils.ColorT;
+import com.hezhong.hezhongskywars.utils.type.DatabaseStatsData;
 import lombok.Getter;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
+@Slf4j
 @Getter
 public enum HezhongSkywars {
     INSTANCE;
@@ -90,9 +101,41 @@ public enum HezhongSkywars {
     }
 
     public void stop() {
+        logger.info("Stopping HSW......");
+        if (database != null) { // 万一是因为没数据库关闭的呢？
+            final Map<UUID, DatabaseStatsData> datas = new HashMap<>();
+            for (Player pp : Bukkit.getOnlinePlayers()) {
+                SwPlayer sp = SwPlayerManager.getPlayer(pp.getUniqueId());
+                if (sp != null) {
+                    final DatabaseStatsData statsData = sp.getStats();
+                    if (statsData.REFRESHED) {
+                        datas.put(pp.getUniqueId(), statsData);
+                        logger.info("DB Will save data for " + pp.getUniqueId());
+                    }
+                }
+            }
+            // 批量保存节省时间
+            CompletableFuture<Void> dbSaving = CompletableFuture.runAsync(() -> {
+                logger.info("DB Async saving data......");
+                database.setAllDatabaseStats(datas);
+
+            });
+            // 阻塞主线程等待保存
+            try {
+                dbSaving.get(30, TimeUnit.SECONDS);
+            } catch (TimeoutException e) {
+                logger.severe("DB Saving Timed out! Will lose datas!");
+                dbSaving.cancel(true);
+            } catch (Exception e) {
+                logger.severe("DB Saving caused an exception!");
+                e.printStackTrace();
+            }
+        }
+
         // 注销监听器
         HandlerList.unregisterAll(plugin);
         logger.info("HSW Stopped.");
+
     }
 
     public Location getLobbySpawnLocation() {

@@ -3,17 +3,23 @@ package com.hezhong.hezhongskywars.command;
 import com.hezhong.hezhongskywars.manager.SwPlayerManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.utils.ColorT;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 
 import java.util.*;
 
 public class CommandProcessor implements CommandExecutor {
 
     private final List<HezhongSkywarsCommand> commands = new ArrayList<>();
-    private static final int PAGE_SIZE = 5;
+    private static final int PAGE_SIZE = 7;
 
     public CommandProcessor() {
         registerCommand(new VersionCommand());
@@ -68,19 +74,24 @@ public class CommandProcessor implements CommandExecutor {
 
     private void processHelp(CommandSender cs, int page) {
         List<HezhongSkywarsCommand> displayCommands = new ArrayList<>(commands);
-        int totalEntries = displayCommands.size() + 1;
-        int totalPages = (int) Math.ceil((double) totalEntries / PAGE_SIZE);
+        int totalCommands = displayCommands.size() + 1;
+        int totalPages = (int) Math.ceil((double) totalCommands / PAGE_SIZE);
+
+        // 抗越界
         if (page < 1) page = 1;
         if (page > totalPages) page = totalPages;
 
+
         int start = (page - 1) * PAGE_SIZE;
-        int end = Math.min(start + PAGE_SIZE, totalEntries);
+        int end = Math.min(start + PAGE_SIZE, totalCommands);
 
         cs.sendMessage(ColorT.t("&b&l Hezhong Skywars 命令帮助"));
         cs.sendMessage(ColorT.t("&c&l <>为必选参数，[]为可选参数"));
 
         for (int i = start; i < end; i++) {
             if (i == 0) {
+                // 因为Help命令没有注册，是硬写的
+                // 因此这里也要硬写
                 cs.sendMessage(ColorT.t("&e /hsw help &a显示帮助"));
             } else {
                 HezhongSkywarsCommand cmd = displayCommands.get(i - 1);
@@ -90,8 +101,33 @@ public class CommandProcessor implements CommandExecutor {
             }
         }
 
-        if (page < totalPages) {
-            cs.sendMessage(ColorT.t("&7<<< &f第" + page + "/" + totalPages + "页 &7>>>"));
+        if (cs instanceof Player) {
+
+            TextComponent msg = new TextComponent("");
+
+            if (page > 1) {
+                TextComponent prev = new TextComponent("<<< ");
+                prev.setColor(ChatColor.GRAY);
+                prev.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/hsw help " + (page - 1)));
+                prev.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                        new ComponentBuilder("上一页").color(ChatColor.GRAY).create()));
+                msg.addExtra(prev);
+            }
+
+            TextComponent pageText = new TextComponent("第" + page + "/" + totalPages + "页");
+            pageText.setColor(ChatColor.WHITE);
+            msg.addExtra(pageText);
+
+            if (page < totalPages) {
+                TextComponent next = new TextComponent(" >>>");
+                next.setColor(ChatColor.GRAY);
+                next.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/hsw help " + (page + 1)));
+                next.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                        new ComponentBuilder("下一页").color(ChatColor.GRAY).create()));
+                msg.addExtra(next);
+            }
+
+            ((Player) cs).spigot().sendMessage(msg);
         } else {
             cs.sendMessage(ColorT.t("&f第" + page + "/" + totalPages + "页"));
         }
