@@ -123,7 +123,7 @@ public class KitSelectGUI extends MultiPageGUI {
     }
 
     private void openPreview(String kitName, KitConfig config) {
-        int rows = Math.max(1, Math.min((config.getItems().size() / 9) + 1, 6));
+        int rows = 4;
         Inventory preview = Bukkit.createInventory(null, rows * 9, ColorT.t("&8预览 " + kitName));
 
         int slot = 0;
