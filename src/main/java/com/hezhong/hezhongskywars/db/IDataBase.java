@@ -3,6 +3,7 @@ package com.hezhong.hezhongskywars.db;
 import com.hezhong.hezhongskywars.utils.type.DatabaseStatsData;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ public interface IDataBase {
     void setDatabaseStats(UUID pp, DatabaseStatsData stats);
     void setAllDatabaseStats(Map<UUID, DatabaseStatsData> allStats);
     List<DatabaseStatsData> getAllDatabaseStats();
+    ArrayList<String> getRawAllDatabaseStats();
 
     // 状态
     void connect();

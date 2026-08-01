@@ -12,6 +12,7 @@ import com.hezhong.hezhongskywars.listeners.JoinQuitListener;
 import com.hezhong.hezhongskywars.manager.GameManager;
 import com.hezhong.hezhongskywars.manager.ListenerManager;
 import com.hezhong.hezhongskywars.manager.SwPlayerManager;
+import com.hezhong.hezhongskywars.multiworld.IndependentWorldManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.setup.SetupListener;
 import com.hezhong.hezhongskywars.task.PlayerScoreBoardTask;
@@ -78,12 +79,15 @@ public enum HezhongSkywars {
             ListenerManager.guiListener = new GUIListener();
         if (ListenerManager.generalListener == null)
             ListenerManager.generalListener = new GeneralListener();
+        if (ListenerManager.independentWorldManager == null)
+            ListenerManager.independentWorldManager = new IndependentWorldManager();
 
         plugin.getServer().getPluginManager().registerEvents(ListenerManager.gameListener, plugin);
         plugin.getServer().getPluginManager().registerEvents(ListenerManager.joinQuitListener, plugin);
         plugin.getServer().getPluginManager().registerEvents(ListenerManager.setupListener, plugin);
         plugin.getServer().getPluginManager().registerEvents(ListenerManager.generalListener, plugin);
         plugin.getServer().getPluginManager().registerEvents(ListenerManager.guiListener, plugin);
+        plugin.getServer().getPluginManager().registerEvents(ListenerManager.independentWorldManager, plugin);
 
         // 命令
         plugin.getCommand("hsw").setExecutor(new CommandProcessor());

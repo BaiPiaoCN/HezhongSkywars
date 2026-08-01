@@ -4,6 +4,7 @@ import com.hezhong.hezhongskywars.game.GameListener;
 import com.hezhong.hezhongskywars.gui.GUIListener;
 import com.hezhong.hezhongskywars.listeners.GeneralListener;
 import com.hezhong.hezhongskywars.listeners.JoinQuitListener;
+import com.hezhong.hezhongskywars.multiworld.IndependentWorldManager;
 import com.hezhong.hezhongskywars.setup.SetupListener;
 
 public class ListenerManager {
@@ -12,4 +13,5 @@ public class ListenerManager {
     public static SetupListener setupListener;
     public static GUIListener guiListener;
     public static GeneralListener generalListener;
+    public static IndependentWorldManager independentWorldManager;
 }

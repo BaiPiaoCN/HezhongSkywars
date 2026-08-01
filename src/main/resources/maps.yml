@@ -21,5 +21,5 @@ example_map: # 此处填写地图名
   events:
     1:
       time: 300 # 秒。游戏开始后，多久触发事件？
-      type: "resetChest" # 事件类型。resetChest或stopGame
+      type: "reset_chest" # 事件类型。reset_chest或stop_game
 

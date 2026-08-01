@@ -89,6 +89,13 @@ public class SwPlayer {
 
         hideList.add(target);
     }
+    public void showPlayer(Player target) {
+        if (hideList.contains(target)) { // 确保不覆盖Tab独立的隐藏
+            player.showPlayer(target);
+
+            hideList.remove(target);
+        }
+    }
 
     @Getter
     @Setter

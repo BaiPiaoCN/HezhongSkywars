@@ -98,6 +98,9 @@ public class ConfigManager {
             levelNeedExps = mainConfig.getIntegerList("levels.needExps");
             ConfigValues.levelNeedExps = levelNeedExps;
 
+            ConfigValues.multiWorldIndependentChat = mainConfig.getBoolean("multiWorld.independentChat");
+            ConfigValues.multiWorldIndependentTab =  mainConfig.getBoolean("multiWorld.independentTab");
+
 
             // 数据库配置
             // database下
@@ -132,7 +135,7 @@ public class ConfigManager {
                 e.printStackTrace();
             }
 
-            // 箱子读取            // 箱子读取
+            // 箱子读取
             // 单独的try catch
             try {
                 ConfigurationSection chestsCS = chestsConfig.getConfigurationSection(""); // 根目录

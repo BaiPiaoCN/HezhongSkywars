@@ -3,6 +3,7 @@ package com.hezhong.hezhongskywars.listeners;
 import com.hezhong.hezhongskywars.HezhongSkywars;
 import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.game.Game;
+import com.hezhong.hezhongskywars.manager.ListenerManager;
 import com.hezhong.hezhongskywars.manager.SwPlayerManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.task.PlayerScoreBoardTask;
@@ -23,6 +24,7 @@ import java.util.UUID;
 public class JoinQuitListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
+        // Pre-Process
         final Player player = event.getPlayer();
         if (HezhongSkywars.INSTANCE.getDatabase().writingPlayers.contains(player.getUniqueId())) {
             player.kickPlayer(ColorT.t("&b&lHSW &a你的数据还未刷新，请等待一下再进入！"));
@@ -45,10 +47,15 @@ public class JoinQuitListener implements Listener {
             }
             p.getStats().REFRESHED = true;
         });
+        // Post-Process
+
+
 
         player.getInventory().clear();
         player.getInventory().setArmorContents(null);
         player.getInventory().setItem(0, SpecialItems.hubGUI());
+        ListenerManager.independentWorldManager.handlePostJoin(event);
+
     }
 
     @EventHandler

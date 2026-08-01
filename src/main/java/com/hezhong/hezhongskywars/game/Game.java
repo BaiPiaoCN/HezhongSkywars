@@ -82,8 +82,8 @@ public class Game {
             if (allPlayers.size() >= maxPlayers) {
                 return false;
             }
-            restoreHide(player);
             allPlayers.add(player);
+            restoreHide(player);
             playingPlayerStatus.put(player.getUniqueId(), new SwPlayingGamePlayer(player));
             // 将玩家传送到出生点
             Location selectedLocation = selectSpawnPoint(player); // 选择出生点
@@ -364,6 +364,7 @@ public class Game {
                 SwPlayer sp = SwPlayerManager.getPlayer(player);
                 sp.setPlayingGame(null);
                 restoreHide(player);
+                player.setAllowFlight(false);
                 player.getInventory().clear();
                 player.getInventory().setArmorContents(null);
                 player.teleport(Bukkit.getWorld(ConfigValues.lobbyWorld).getSpawnLocation());
@@ -381,7 +382,7 @@ public class Game {
     }
 
     private void refreshAllChests() {
-        // 匹狼刷新全图箱子
+        // 批量刷新全图箱子
         for (Map.Entry<Location, Chest> entry : chests.entrySet()) {
             Location loc = entry.getKey();
             refreshChest(loc);
@@ -499,7 +500,8 @@ public class Game {
         pp.setAllowFlight(true);
         pp.setFlying(true);
         for (Player aP : getAlivePlayers()) {
-            aP.hidePlayer(pp);
+            SwPlayer aPsP = SwPlayerManager.getPlayer(aP);
+            aPsP.hidePlayer(pp);
         }
         TitleAPI.sendTitle(pp, 0, 40, 20, ColorT.t("&a你是旁观者"));
     }
@@ -531,8 +533,10 @@ public class Game {
         return alive;
     }
     private void restoreHide(Player p) {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            p.showPlayer(player);
+        SwPlayer sp = SwPlayerManager.getPlayer(p);
+        for (Player player : allPlayers) {
+            if (player != p)
+                sp.showPlayer(player);
         }
     }
 

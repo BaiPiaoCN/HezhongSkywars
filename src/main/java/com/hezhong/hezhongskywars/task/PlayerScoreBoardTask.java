@@ -153,6 +153,7 @@ public class PlayerScoreBoardTask extends BukkitRunnable {
         while (teams.size() < lines.length) {
             int index = teams.size();
             String entry = ENTRIES[index % ENTRIES.length]; // 取余是为了避免越界
+            // 如果行数太长，ENTRIES无法容纳，就会有问题。
             Team team = scoreboard.getTeam("HSW_" + index);
             if (team == null) {
                 team = scoreboard.registerNewTeam("HSW_" + index);

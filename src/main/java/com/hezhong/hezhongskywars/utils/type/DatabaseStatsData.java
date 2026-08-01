@@ -29,4 +29,17 @@ public class DatabaseStatsData {
 
     // 集成击杀和胜利方法
 
+    public int getInGameLevel() {
+        // 直接靠经验计算等级
+        int level = 1;
+        for (int i = 0; i < (ConfigValues.levelNeedExps.size() - 1); i++) {
+            int needExps = ConfigValues.levelNeedExps.get(i);
+            int nextLevelNeedExps = ConfigValues.levelNeedExps.get(i + 1);
+            if (exps >= needExps && exps < nextLevelNeedExps) {
+                level = (i + 1);
+            }
+        }
+        return level;
+    }
+
 }

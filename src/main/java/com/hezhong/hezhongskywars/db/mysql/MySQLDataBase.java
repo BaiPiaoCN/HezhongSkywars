@@ -177,4 +177,20 @@ public class MySQLDataBase implements IDataBase {
         }
         return list;
     }
+
+    @Override
+    public ArrayList<String> getRawAllDatabaseStats() {
+        String sql = "SELECT stats FROM " + tableNamePrefix + "_stats";
+        ArrayList<String> list = new ArrayList<>();
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(rs.getString("stats"));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to get raw all database stats", e);
+        }
+        return list;
+    }
 }

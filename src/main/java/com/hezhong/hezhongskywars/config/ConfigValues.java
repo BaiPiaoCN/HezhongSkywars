@@ -20,4 +20,6 @@ public class ConfigValues {
     public static int expWinAdd;
     public static int expKillAdd;
     public static List<Integer> levelNeedExps = new ArrayList<>();
+    public static boolean multiWorldIndependentChat;
+    public static boolean multiWorldIndependentTab;
 }

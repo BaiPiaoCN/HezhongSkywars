@@ -20,6 +20,7 @@ public class GeneralListener implements Listener {
         Player player = e.getPlayer();
 
         if (Objects.equals(player.getWorld().getName(), ConfigValues.lobbyWorld)) {
+            player.setHealth(20);
 
             player.getInventory().clear();
             player.getInventory().setArmorContents(null);

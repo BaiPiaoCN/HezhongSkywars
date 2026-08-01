@@ -119,7 +119,8 @@ public class GameListener implements Listener {
     @EventHandler
     public void onDamage(EntityDamageEvent e) {
         if (e.getCause() == EntityDamageEvent.DamageCause.SUICIDE ||  e.getCause() == EntityDamageEvent.DamageCause.CUSTOM) {
-            // 六六六Kill为什么无法击杀
+            // 六六六 我说为什么Kill杀不了人了
+            // 必须加这两个原因的豁免，避免玩家不死
             return;
         }
         Entity ent = e.getEntity();
@@ -131,6 +132,7 @@ public class GameListener implements Listener {
             if (playingGame != null) {
                 SwPlayingGamePlayer swpgp = playingGame.getPlayingPlayer(p.getUniqueId());
                 if (playingGame.getGameStatus() != GameStatus.PLAYING || playingGame.getRunnedTime() <= 5 || swpgp.getStatus() != SwPlayingGamePlayer.PlayerStatus.ALIVE) {
+                    // 开局短暂免伤
                     e.setCancelled(true);
                 }
             } else {
