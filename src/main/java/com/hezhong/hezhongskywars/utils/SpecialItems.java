@@ -51,5 +51,33 @@ public class SpecialItems {
         ReadableNBT nbt = NBT.readNbt(i);
         return nbt.getBoolean("hubGUI");
     }
+    public static ItemStack toPlay() {
+        ItemStack i = XMaterial.ENDER_EYE.parseItem();
+        ItemMeta m = i.getItemMeta();
+        m.setDisplayName(ColorT.t("&a自动匹配"));
+        i.setItemMeta(m);
+        NBT.modify(i, nbt -> {
+            nbt.setBoolean("toPlay", true);
+        });
+        return i;
+    }
+    public static boolean isToPlay(ItemStack i) {
+        ReadableNBT nbt = NBT.readNbt(i);
+        return nbt.getBoolean("toPlay");
+    }
+    public static ItemStack mapSelector() {
+        ItemStack i = XMaterial.PAPER.parseItem();
+        ItemMeta m = i.getItemMeta();
+        m.setDisplayName(ColorT.t("&a查看地图"));
+        i.setItemMeta(m);
+        NBT.modify(i, nbt -> {
+            nbt.setBoolean("mapSelector", true);
+        });
+        return i;
+    }
+    public static boolean isMapSelector(ItemStack i) {
+        ReadableNBT nbt = NBT.readNbt(i);
+        return nbt.getBoolean("mapSelector");
+    }
 
 }

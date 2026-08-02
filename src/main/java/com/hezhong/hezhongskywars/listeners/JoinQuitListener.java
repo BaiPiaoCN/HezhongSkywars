@@ -50,10 +50,8 @@ public class JoinQuitListener implements Listener {
         // Post-Process
 
 
+        p.giveLobbyItems();
 
-        player.getInventory().clear();
-        player.getInventory().setArmorContents(null);
-        player.getInventory().setItem(0, SpecialItems.hubGUI());
         ListenerManager.independentWorldManager.handlePostJoin(event);
 
     }

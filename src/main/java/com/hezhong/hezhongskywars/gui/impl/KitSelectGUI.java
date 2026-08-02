@@ -50,6 +50,7 @@ public class KitSelectGUI extends MultiPageGUI {
         slotKitMap.clear();
         super.showPage();
 
+
         // 我怎么忘了计算这玩意
 
 
@@ -103,7 +104,7 @@ public class KitSelectGUI extends MultiPageGUI {
     public void handleMultiPageClick(InventoryClickEvent event) {
         int slot = event.getSlot();
 
-        String kitName = slotKitMap.get(slot);
+        String kitName = slotKitMap.getOrDefault(slot, null);
         if (kitName == null) return;
 
         Player player = owner;

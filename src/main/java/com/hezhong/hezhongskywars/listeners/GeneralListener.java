@@ -3,6 +3,8 @@ package com.hezhong.hezhongskywars.listeners;
 
 import com.cryptomorin.xseries.XMaterial;
 import com.hezhong.hezhongskywars.config.ConfigValues;
+import com.hezhong.hezhongskywars.manager.SwPlayerManager;
+import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.utils.SpecialItems;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,16 +20,12 @@ public class GeneralListener implements Listener {
     @EventHandler
     public void onChangeWorld(PlayerChangedWorldEvent e) {
         Player player = e.getPlayer();
+        SwPlayer sp = SwPlayerManager.getPlayer(player);
 
         if (Objects.equals(player.getWorld().getName(), ConfigValues.lobbyWorld)) {
             player.setHealth(20);
 
-            player.getInventory().clear();
-            player.getInventory().setArmorContents(null);
-
-            player.getInventory().setItem(0, SpecialItems.hubGUI());
-            ItemStack kitSelector = SpecialItems.kitSelector();
-            player.getInventory().setItem(1, kitSelector);
+            sp.giveLobbyItems();
         }
     }
     // 用于处理右键物品的效果
@@ -48,6 +46,12 @@ public class GeneralListener implements Listener {
             }
             if (SpecialItems.isHubGUI(held)) {
                 p.performCommand("hsw gui main");
+            }
+            if (SpecialItems.isToPlay(held)) {
+                p.performCommand("hsw play");
+            }
+            if (SpecialItems.isMapSelector(held)) {
+                p.performCommand("hsw gui mapSelector");
             }
         }
     }

@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 public class Game {
+    // 完整的游戏单例
 
     private final String mapName;
     private final World world;
@@ -73,12 +74,13 @@ public class Game {
         countdown = ConfigValues.mapConfigs.get(mapName).getCountdown();
 
         // 对events，按照时间排序
+        // 从小到大
         Collections.sort(events, Comparator.comparingInt(GameEvent::getTime));
     }
 
     public boolean addPlayer(Player player) {
         // 必须设置SwPlayer状态。不能重复调用。
-        if (gameStatus == GameStatus.WAITING) {
+        if (gameStatus == GameStatus.WAITING || gameStatus == GameStatus.STARTING) {
             if (allPlayers.size() >= maxPlayers) {
                 return false;
             }
@@ -98,6 +100,8 @@ public class Game {
             player.setGameMode(GameMode.SURVIVAL);
             ItemStack kitSelector = SpecialItems.kitSelector();
             player.getInventory().addItem(kitSelector);
+            ItemStack hubTeleportor = SpecialItems.lobbyTeleporter();
+            player.getInventory().setItem(8, hubTeleportor);
 
             if (getAlivePlayers().size() >= ConfigValues.mapConfigs.get(mapName).getMinPlayersToAutostart()) {
                 // 准备开始
@@ -122,15 +126,13 @@ public class Game {
             Location spawnLocation = spawn.getX();
             removeCage(spawnLocation);
         }
-        gameStatus = GameStatus.PLAYING;
-        sendMessage("&c&l战斗！");
         for (Player player : allPlayers) {
             player.getInventory().clear();
             TitleAPI.sendTitle(player, 0, 60, 20, ColorT.t("&c&l战斗！"));
 
             SwPlayingGamePlayer swpgp = playingPlayerStatus.get(player.getUniqueId());
             // 把职业物品给玩家
-            if (swpgp.getStatus() == SwPlayingGamePlayer.PlayerStatus.ALIVE) { // 保险
+            if (swpgp.getStatus() == SwPlayingGamePlayer.PlayerStatus.ALIVE) { // 保险处理
                 if (!Objects.equals(swpgp.getSelectedKit(), "None")) {
                     KitConfig kit = ConfigValues.kitConfigs.get(swpgp.getSelectedKit());
                     if (kit != null) {
@@ -143,6 +145,9 @@ public class Game {
 
             SwPlayer sp = SwPlayerManager.getPlayer(player);
             sp.getStats().gamesPlayed++;
+
+            gameStatus = GameStatus.PLAYING;
+            sendMessage("&c&l战斗！");
         }
         gameEventRunner();
     }
@@ -337,6 +342,7 @@ public class Game {
 
         // 此处处理胜利者
         for (Player winner : getAlivePlayers()) {
+           winner.getInventory().setItem(8, SpecialItems.lobbyTeleporter()); // 给返回大厅的东西
             SwPlayer sp = SwPlayerManager.getPlayer(winner);
             TitleAPI.sendTitle(winner, 0, 90, 10, ColorT.t("&e&lVICTORY"));
             sp.addWins(); // 统计输赢

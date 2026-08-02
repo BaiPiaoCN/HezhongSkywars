@@ -2,6 +2,7 @@ package com.hezhong.hezhongskywars.player;
 
 import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.game.Game;
+import com.hezhong.hezhongskywars.utils.SpecialItems;
 import com.hezhong.hezhongskywars.utils.type.DatabaseStatsData;
 import lombok.Getter;
 import lombok.Setter;
@@ -95,6 +96,16 @@ public class SwPlayer {
 
             hideList.remove(target);
         }
+    }
+    public void giveLobbyItems() {
+        player.getInventory().clear();
+        player.getInventory().setArmorContents(null);
+        player.getInventory().setItem(0, SpecialItems.toPlay());
+        player.getInventory().setItem(1, SpecialItems.mapSelector());
+        // [Space]
+        player.getInventory().setItem(3, SpecialItems.hubGUI());
+        player.getInventory().setItem(4, SpecialItems.kitSelector());
+
     }
 
     @Getter

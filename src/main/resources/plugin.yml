@@ -1,5 +1,5 @@
 name: HezhongSkywars
-version: '0.0.2a-260802a'
+version: '0.0.3a-260802c'
 main: com.hezhong.hezhongskywars.HezhongSkywarsLoader
 commands:
    hsw:

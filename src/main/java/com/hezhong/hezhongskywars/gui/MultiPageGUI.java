@@ -74,7 +74,7 @@ public abstract class MultiPageGUI extends HezhongSkywarsGUI {
         ItemStack pageItem = new ItemStack(XMaterial.CLOCK.get());
         ItemMeta meta = pageItem.getItemMeta();
         meta.setDisplayName(ColorT.t("&f&l页面 " + (currentPage + 1) + "/" + totalPages));
-        pageItem.setAmount(currentPage);
+        pageItem.setAmount(currentPage + 1);
         pageItem.setItemMeta(meta);
         inventory.setItem(lastRowStart + 4, pageItem);
 

@@ -117,7 +117,7 @@ public class PlayerScoreBoardTask extends BukkitRunnable {
                         "&a存活: &f" + alive + "&7/&f" + total,
                         "",
                         "&e时间: &f" + formatTime(game.getRunnedTime()),
-                        "&e下一事件: &f" + (nextEvent == null ? "无" : nextEvent.getType().getEventName()),
+                        "&e下一事件: &f" + (nextEvent == null ? "无" : nextEvent.getType().getEventName()) + (nextEvent == null ? "" : ("&e" + formatTime(nextEvent.getTime() - game.getRunnedTime()))),
                         "",
                         "&b职业: &f" + game.getPlayerKit(player),
                         "&7&m----------------"

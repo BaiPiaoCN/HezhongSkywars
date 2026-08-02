@@ -14,6 +14,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
@@ -168,6 +169,23 @@ public class GameListener implements Listener {
                     }
                 }
             }
+        }
+    }
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent e) {
+        Player p = e.getPlayer();
+        SwPlayer sp = SwPlayerManager.getPlayer(p);
+        if (sp == null) return;
+        Game playingGame = sp.getPlayingGame();
+        if (playingGame != null) {
+            SwPlayingGamePlayer swpgp = playingGame.getPlayingPlayer(p.getUniqueId());
+            if (playingGame.getGameStatus() != GameStatus.PLAYING || playingGame.getRunnedTime() <= 1 || swpgp.getStatus() != SwPlayingGamePlayer.PlayerStatus.ALIVE) {
+                // 禁止丢去物品
+                e.setCancelled(true);
+            }
+        } else {
+            // 不在游戏中时，禁止丢去物品
+            e.setCancelled(true);
         }
     }
 

@@ -5,6 +5,7 @@ import com.hezhong.hezhongskywars.HezhongSkywars;
 import com.hezhong.hezhongskywars.gui.HezhongSkywarsGUI;
 import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.utils.ColorT;
+import com.hezhong.hezhongskywars.utils.SimpleMath;
 import com.hezhong.hezhongskywars.utils.type.DatabaseStatsData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -46,7 +47,7 @@ public class PlayerInfoGUI extends HezhongSkywarsGUI {
                         meta.setLore(ColorT.t(Arrays.asList("&f总游戏 &7" + data.gamesPlayed,
                                 "&a胜场 &7" + data.wins,
                                 "&c败场 &7" + (data.gamesPlayed - data.wins),
-                                "&fW/L &7" + ((data.gamesPlayed - data.wins) == 0 ? -1 : ((data.wins) / (data.gamesPlayed - data.wins))),
+                                "&fW/L &7" + SimpleMath.formatScale((data.gamesPlayed - data.wins) == 0 ? -1 : ((double) (data.wins) / (data.gamesPlayed - data.wins)), 2),
                                 "&e硬币 &7" + data.coins,
                                 "&b经验 &7" + data.exps)));
                         item.setItemMeta(meta);
@@ -58,7 +59,7 @@ public class PlayerInfoGUI extends HezhongSkywarsGUI {
                         meta.setDisplayName(ColorT.t("&cPVP统计"));
                         meta.setLore(ColorT.t(Arrays.asList("&c总死亡 &7" + data.deaths,
                                 "&a总击杀 &7" + data.kills,
-                                "&fK/D &7" + (data.deaths == 0 ? -1 : (data.kills / data.deaths)))));
+                                "&fK/D &7" + SimpleMath.formatScale(data.deaths == 0 ? -1 : ((double) data.kills / data.deaths), 2))));
                         item.setItemMeta(meta);
                     }
                 }
