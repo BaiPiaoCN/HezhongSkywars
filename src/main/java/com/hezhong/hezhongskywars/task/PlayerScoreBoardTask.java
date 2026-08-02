@@ -51,14 +51,20 @@ public class PlayerScoreBoardTask extends BukkitRunnable {
 
     private void updateLobbyScoreboard(Scoreboard scoreboard, Objective objective, Player player) {
         objective.setDisplayName(ColorT.t(ConfigValues.serverName));
+        SwPlayer sp = SwPlayerManager.getPlayer(player);
+        if (sp != null) {
 
-        String[] lines = {
-                "&e/hsw join &a加入游戏",
-                "",
-                "" + ConfigValues.serverIp,
-        };
+            String[] lines = {
+                    "&e/hsw join &a加入游戏",
+                    "",
+                    "&b经验&7: &f" + sp.getStats().exps,
+                    "&e硬币&7: &f" + sp.getStats().coins,
+                    "&b等级&7: &f" + sp.getStats().getInGameLevel(),
+                    "" + ConfigValues.serverIp,
+            };
 
-        setLines(scoreboard, objective, lines, player.getUniqueId());
+            setLines(scoreboard, objective, lines, player.getUniqueId());
+        }
     }
 
     // ========== 游戏内计分板 ==========

@@ -24,6 +24,7 @@ public class PlayCommand extends HezhongSkywarsCommand {
             if (args.length < 2) {
                 p.sendMessage(ColorT.t("&e自动寻找中......"));
                 HezhongSkywars.INSTANCE.getGameManager().getQueueManager().findGame(sp);
+                return;
             }
 
             Game game = HezhongSkywars.INSTANCE.getGameManager().getGames().get(args[1]);

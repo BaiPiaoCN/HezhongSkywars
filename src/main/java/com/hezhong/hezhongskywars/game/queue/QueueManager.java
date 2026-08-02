@@ -20,7 +20,7 @@ public class QueueManager {
         }
         // 寻找还没开始，且maxPlayers - players最大的游戏
         List<Game> sortedList = HezhongSkywars.INSTANCE.getGameManager().getGames().values().stream()
-                .filter(g -> g.getGameStatus() == GameStatus.WAITING)
+                .filter(g -> (g.getGameStatus() == GameStatus.WAITING || g.getGameStatus() == GameStatus.STARTING) && (g.getMaxPlayers() - g.getAlivePlayers().size()) >= 1)
                 .sorted(Comparator.comparingInt(g -> g.getMaxPlayers() - g.getAlivePlayers().size()))
                 .collect(Collectors.toList());
 
