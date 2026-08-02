@@ -6,6 +6,7 @@ import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.config.MapConfig;
 import com.hezhong.hezhongskywars.game.Chest;
 import com.hezhong.hezhongskywars.game.Game;
+import com.hezhong.hezhongskywars.game.queue.QueueManager;
 import com.hezhong.hezhongskywars.utils.type.CustomItem;
 import lombok.Getter;
 import org.apache.commons.io.FileUtils;
@@ -29,6 +30,8 @@ public class GameManager {
     private final Plugin serverPlugin;
     @Getter
     private final Map<String, Game> games = new HashMap<>();
+    @Getter
+    private final QueueManager queueManager = new QueueManager();
     // K:V => 地图名 : 游戏实例
     public GameManager(Plugin serverPlugin) {
         this.serverPlugin = serverPlugin;
