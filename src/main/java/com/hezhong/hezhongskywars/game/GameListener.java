@@ -164,8 +164,7 @@ public class GameListener implements Listener {
 
                         // 2 保存伤害数据
                         SwPlayingGamePlayer swpgpDamaged = playingGame.getPlayingPlayer(p.getUniqueId());
-                        swpgpDamaged.totalDamage += e.getDamage();
-                        swpgpDamaged.getDamageByAttack().put(damagerPlayer.getUniqueId(), e.getDamage());
+                        swpgpDamaged.addDamage(damagerPlayer.getUniqueId(), e.getDamage());
                     }
                 }
             }

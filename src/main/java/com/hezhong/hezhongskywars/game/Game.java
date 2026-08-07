@@ -6,6 +6,7 @@ import com.hezhong.hezhongskywars.HezhongSkywars;
 import com.hezhong.hezhongskywars.config.ConfigValues;
 import com.hezhong.hezhongskywars.config.KitConfig;
 import com.hezhong.hezhongskywars.events.HSWGameStartEvent;
+import com.hezhong.hezhongskywars.events.HSWGameStatusChangeEvent;
 import com.hezhong.hezhongskywars.manager.SwPlayerManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.utils.ColorT;
@@ -55,7 +56,7 @@ public class Game {
     public Game(String mapName, World world, Map<Location, Chest> chests, List<Location> spawns, List<GameEvent> events) {
         this.mapName = mapName;
         this.world = world;
-        gameStatus = GameStatus.WAITING;
+        setGameStatus(GameStatus.WAITING);
         allPlayers = new ArrayList<>();
         playingPlayerStatus = new HashMap<>();
         this.chests = chests;
@@ -146,7 +147,7 @@ public class Game {
             SwPlayer sp = SwPlayerManager.getPlayer(player);
             sp.getStats().gamesPlayed++;
 
-            gameStatus = GameStatus.PLAYING;
+            setGameStatus(GameStatus.PLAYING);
             sendMessage("&c&l战斗！");
         }
         gameEventRunner();
@@ -271,7 +272,7 @@ public class Game {
 
                     SwPlayer eSp = SwPlayerManager.getPlayer(entry.getKey());
                     SwPlayingGamePlayer eSwpgp = playingPlayerStatus.get(entry.getKey());
-                    if (eSp != null && eSwpgp != null && eSp.getPlayingGame() == this) {
+                    if (eSp != null && eSwpgp != null && eSp.getPlayingGame() == this && swpgpKilled.totalDamage != 0) {
                         // 玩家还在这局游戏里
                         double pct = entry.getValue() / swpgpKilled.totalDamage;
                         int coinsAdd = SimpleMath.floor(ConfigValues.coinsKillAdd * pct);
@@ -317,7 +318,7 @@ public class Game {
         } else {
             winnerName = getAlivePlayers().get(0).getName();
         }
-        gameStatus = GameStatus.STOPPED;
+        setGameStatus(GameStatus.STOPPED);
         List<Pair<Integer, Player>> mostKilled = new ArrayList<>();
         // 按击杀数排序
         for (Player player : allPlayers) {
@@ -375,7 +376,7 @@ public class Game {
                 player.getInventory().setArmorContents(null);
                 player.teleport(Bukkit.getWorld(ConfigValues.lobbyWorld).getSpawnLocation());
             }
-            gameStatus = GameStatus.RESETTING;
+            setGameStatus(GameStatus.RESETTING);
             Bukkit.getScheduler().runTaskAsynchronously(HezhongSkywars.INSTANCE.getPlugin(), () -> {
                 try {
                     HezhongSkywars.INSTANCE.getGameManager().resetGame(mapName);
@@ -577,5 +578,9 @@ public class Game {
         p.sendMessage(ColorT.t("&c助攻 &e" + killed.getName() + " &7[&e" + damage + " &7/&e " + totalDamage + " &7伤害]"));
         p.sendMessage(ColorT.t("&a+&e" + addCoins + " &a硬币 |&e" + addExps + " &a经验！"));
     }
-
+    public void setGameStatus(GameStatus gameStatus) {
+        this.gameStatus = gameStatus;
+        HSWGameStatusChangeEvent changeEvent = new HSWGameStatusChangeEvent(this, gameStatus);
+        Bukkit.getPluginManager().callEvent(changeEvent);
+    }
 }

@@ -38,11 +38,12 @@ public class Chest {
         List<CustomItem> items = new ArrayList<>();
         int toGenerate = RandomUtil.randomInt(minFilled, maxFilled);
         // 能跑就行
+        // 我也不知道我是怎么写出的这些屎山，反正能跑就行！
         for (int i = 0; i < toGenerate; i++) {
             int randomN = RandomUtil.randomInt(1, weightTotal);
-            int tW = 0;
+            int tW = 0; // totalWeight 相当于区间的左端点
             for (Map.Entry<CustomItem, Integer> entry : itemProbability.entrySet()) {
-                if (randomN > tW && randomN <= (tW + entry.getValue())) {
+                if (randomN > tW && randomN <= (tW + entry.getValue())) { // 区间概率计算
                     items.add(entry.getKey());
                     generated++;
                     break;
