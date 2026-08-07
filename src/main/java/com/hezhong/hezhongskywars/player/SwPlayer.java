@@ -50,8 +50,7 @@ public class SwPlayer {
         if (playingGame != null) {
             return false;
         }
-        g.addPlayer(player);
-        playingGame = g;
+        if (g.addPlayer(player)) playingGame = g;
         return true;
     }
 

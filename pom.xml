@@ -6,7 +6,7 @@
 
     <groupId>com.hezhong</groupId>
     <artifactId>HezhongSkywars</artifactId>
-    <version>1.0.0</version>
+    <version>0.0.3.1</version>
     <packaging>jar</packaging>
 
     <name>HezhongSkywars</name>
@@ -15,6 +15,19 @@
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>hezhong-releases</id>
+            <name>Hezhong Releases</name>
+            <url>https://mvn.hezhongkj.top/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>hezhong-snapshots</id>
+            <name>Hezhong Snapshots</name>
+            <url>https://mvn.hezhongkj.top/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <build>
         <plugins>

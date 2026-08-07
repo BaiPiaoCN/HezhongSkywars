@@ -57,69 +57,74 @@ public class GameManager {
     }
     public void resetGame(String mapName) throws FileNotFoundException {
         try {
-        // 主线程执行会导致死锁主线程，绝对不能主线程执行
-        if (Bukkit.isPrimaryThread()) {
-            HezhongSkywars.INSTANCE.getLogger().warning("HSW resetGame called from main thread!");
-            return;
-        }
-        if (ConfigValues.mapConfigs.containsKey(mapName)) {
-            MapConfig mc = ConfigValues.mapConfigs.get(mapName); // 配置
-            // 去寻找原世界
-            File originalWorld = new File(serverPlugin.getDataFolder(), "maps/" + mc.getOriginalWorld());
-            if (!originalWorld.exists()) {
-                throw new FileNotFoundException("Cannot find original world " + mc.getOriginalWorld());
+            // 主线程执行会导致死锁主线程，绝对不能主线程执行
+            if (Bukkit.isPrimaryThread()) {
+                HezhongSkywars.INSTANCE.getLogger().warning("HSW resetGame called from main thread!");
+                return;
             }
-            CompletableFuture<Boolean> futureUnload = new CompletableFuture<>();
-            Bukkit.getScheduler().runTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
-                if (Bukkit.getWorld(mc.getCopyWorld()) != null) {
-                    Bukkit.unloadWorld(mc.getCopyWorld(), false);
+            if (ConfigValues.mapConfigs.containsKey(mapName)) {
+                MapConfig mc = ConfigValues.mapConfigs.get(mapName); // 配置
+                // 去寻找原世界
+                File originalWorld = new File(serverPlugin.getDataFolder(), "maps/" + mc.getOriginalWorld());
+                if (!originalWorld.exists()) {
+                    throw new FileNotFoundException("Cannot find original world " + mc.getOriginalWorld());
                 }
-                Bukkit.getScheduler().runTaskLater(HezhongSkywars.INSTANCE.getPlugin(), () -> {
-                    // 如果不延迟的话，可能导致文件句柄不释放，导致重置异常
-                    futureUnload.complete(true);
-                }, 20); // 1s足矣
-            });
-            futureUnload.join();
-            // 世界卸载后，复制一份地图
-            copyWorld(mc.getOriginalWorld(), mc.getCopyWorld());
-            // 文件复制后，加载世界
-            CompletableFuture<World> futureLoad = new CompletableFuture<>();
-            Bukkit.getScheduler().runTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
-                WorldCreator worldCreator = new WorldCreator(mc.getCopyWorld());
-                World w = worldCreator.createWorld();
-                if (w != null) {
-                    // 禁止自然刷怪
-                    w.setGameRuleValue("doMobSpawning", "false");
-                    w.setGameRuleValue("keepInventory", "true"); // 自己清理背包
-                }
-                futureLoad.complete(w);
-            });
-            // 等着
-            futureLoad.join();
-            World w = futureLoad.get();
-            // 此时全部载入完成
-            if (w != null) {
-                Map<Location, Chest> chests = new HashMap<>();
-                for (Map.Entry<Vector, String> entry : mc.getChests().entrySet()) {
-                    // 初始化真正的箱子
-
-                    ChestConfig cc = ConfigValues.chestConfigs.get(entry.getValue());
-                    Chest chest = new Chest(mapName, cc.getMinFilled(), cc.getMaxFilled());
-                    // 遍历所有的物品
-                    for (Map.Entry<CustomItem, Integer> itemEntry : cc.getItem().entrySet()) {
-                        chest.addChestItem(itemEntry.getValue(), itemEntry.getKey());
+                CompletableFuture<Boolean> futureUnload = new CompletableFuture<>();
+                Bukkit.getScheduler().runTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
+                    if (Bukkit.getWorld(mc.getCopyWorld()) != null) {
+                        Bukkit.unloadWorld(mc.getCopyWorld(), false);
                     }
-                    chests.put(new Location(w, entry.getKey().getX(), entry.getKey().getY(), entry.getKey().getZ()), chest);
-                }
-                List<Location> spawns = new ArrayList<>();
-                for (Vector v : mc.getSpawns()) {
-                    spawns.add(new Location(w, v.getX(), v.getY(), v.getZ()));
-                }
-                games.put(mapName, new Game(mapName, w, chests, spawns, mc.getGameEvents()));
-            }
-            return;
+                    Bukkit.getScheduler().runTaskLater(HezhongSkywars.INSTANCE.getPlugin(), () -> {
+                        // 如果不延迟的话，可能导致文件句柄不释放，导致重置异常
+                        futureUnload.complete(true);
+                    }, 20); // 1s足矣
+                });
+                futureUnload.join();
+                // 世界卸载后，复制一份地图
+                copyWorld(mc.getOriginalWorld(), mc.getCopyWorld());
+                // 文件复制后，加载世界
+                CompletableFuture<World> futureLoad = new CompletableFuture<>();
+                Bukkit.getScheduler().runTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
+                    WorldCreator worldCreator = new WorldCreator(mc.getCopyWorld());
+                    World w = worldCreator.createWorld();
+                    if (w != null) {
+                        // 禁止自然刷怪
+                        w.setGameRuleValue("doMobSpawning", "false");
+                        w.setGameRuleValue("keepInventory", "true"); // 自己清理背包
+                    }
+                    futureLoad.complete(w);
+                });
+                // 等着
+                futureLoad.join();
+                World w = futureLoad.get();
+                // 此时全部载入完成
+                if (w != null) {
+                    try {
+                        Map<Location, Chest> chests = new HashMap<>();
+                        for (Map.Entry<Vector, String> entry : mc.getChests().entrySet()) {
+                            // 初始化真正的箱子
 
-        }
+                            ChestConfig cc = ConfigValues.chestConfigs.get(entry.getValue());
+                            Chest chest = new Chest(mapName, cc.getMinFilled(), cc.getMaxFilled());
+                            // 遍历所有的物品
+                            for (Map.Entry<CustomItem, Integer> itemEntry : cc.getItem().entrySet()) {
+                                chest.addChestItem(itemEntry.getValue(), itemEntry.getKey());
+                            }
+                            chests.put(new Location(w, entry.getKey().getX(), entry.getKey().getY(), entry.getKey().getZ()), chest);
+                        }
+                        List<Location> spawns = new ArrayList<>();
+                        for (Vector v : mc.getSpawns()) {
+                            spawns.add(new Location(w, v.getX(), v.getY(), v.getZ()));
+                        }
+                        games.put(mapName, new Game(mapName, w, chests, spawns, mc.getGameEvents()));
+                    } catch (Exception e) {
+                        HezhongSkywars.INSTANCE.getLogger().severe("HSW Failed to init game " + mapName + " while init-ing chest");
+                        e.printStackTrace();
+                    }
+                }
+                return;
+
+            }
         } catch (ExecutionException | InterruptedException e) {
             HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to reset world");
             e.printStackTrace();

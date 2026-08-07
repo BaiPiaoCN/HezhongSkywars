@@ -121,7 +121,7 @@ public class Game {
     public void startGame() {
         // 接收到了StartEvent，开始游戏
         countdownRemaining = 0;
-        countdownTask.cancel();
+        if (countdownTask != null) countdownTask.cancel();
         refreshAllChests();
         for (Pair<Location, Player> spawn : spawns) {
             Location spawnLocation = spawn.getX();
@@ -148,8 +148,8 @@ public class Game {
             sp.getStats().gamesPlayed++;
 
             setGameStatus(GameStatus.PLAYING);
-            sendMessage("&c&l战斗！");
         }
+        sendMessage("&c&l战斗！");
         gameEventRunner();
     }
 
@@ -220,6 +220,7 @@ public class Game {
         SwPlayingGamePlayer swpgpKilled = playingPlayerStatus.get(killed.getUniqueId());
         assert sp != null : "?"; // 不会吧？
         sp.setNextSpawnLocation(location);
+        String deathMessage = ColorT.t("&7" + killed.getName() + " &e死了。");
         if (gameStatus == GameStatus.PLAYING) { // 此时游戏还在进行
             killed.getInventory().clear();
             if (killer != null && !quit) { // 被杀了
@@ -240,7 +241,7 @@ public class Game {
                 if (getAlivePlayers().size() <= 1) {
                     normalEnd();
                 }
-                return ColorT.t("&7" + killed.getName() + " &e被 &7" + killer.getName() + " &e杀死了！");
+                deathMessage = ColorT.t("&7" + killed.getName() + " &e被 &7" + killer.getName() + " &e杀死了！");
             } else if (killer == null && !quit) {
                 if (swpgpKilled.getStatus() == SwPlayingGamePlayer.PlayerStatus.ALIVE) {
                     swpgpKilled.setStatus(SwPlayingGamePlayer.PlayerStatus.DEAD);
@@ -250,7 +251,7 @@ public class Game {
                     killed.teleport(location);
                 }
                 toSpectate(killed);
-                // 直接默认返回值（击杀语）
+                // 直接默认返回值（亡语）
             } else if (quit) {
                 restoreHide(killed);
                 allPlayers.remove(killed);
@@ -263,26 +264,30 @@ public class Game {
                 if (getAlivePlayers().size() <= 1) {
                     normalEnd();
                 }
-                return "";
+                deathMessage = "";
             }
 
-            for (Map.Entry<UUID, Double> entry : swpgpKilled.getDamageByAttack().entrySet()) {
-                if (killer == null || entry.getKey() != killer.getUniqueId()) { // 不算击杀者（击杀者已计算过了）。
-                    // 当然可能没击杀者，需要排除null
+            processAssist:
+            {
+                for (Map.Entry<UUID, Double> entry : swpgpKilled.getDamageByAttack().entrySet()) {
+                    if (killer == null || entry.getKey() != killer.getUniqueId()) { // 不算击杀者（击杀者已计算过了）。
+                        // 当然可能没击杀者，需要排除null
 
-                    SwPlayer eSp = SwPlayerManager.getPlayer(entry.getKey());
-                    SwPlayingGamePlayer eSwpgp = playingPlayerStatus.get(entry.getKey());
-                    if (eSp != null && eSwpgp != null && eSp.getPlayingGame() == this && swpgpKilled.totalDamage != 0) {
-                        // 玩家还在这局游戏里
-                        double pct = entry.getValue() / swpgpKilled.totalDamage;
-                        int coinsAdd = SimpleMath.floor(ConfigValues.coinsKillAdd * pct);
-                        int expAdd = SimpleMath.floor(ConfigValues.expKillAdd * pct);
+                        SwPlayer eSp = SwPlayerManager.getPlayer(entry.getKey());
+                        SwPlayingGamePlayer eSwpgp = playingPlayerStatus.get(entry.getKey());
+                        if (eSp != null && eSwpgp != null && eSp.getPlayingGame() == this && swpgpKilled.totalDamage != 0) {
+                            // 玩家还在这局游戏里
+                            double pct = entry.getValue() / swpgpKilled.totalDamage;
+                            int coinsAdd = SimpleMath.floor(ConfigValues.coinsKillAdd * pct);
+                            int expAdd = SimpleMath.floor(ConfigValues.expKillAdd * pct);
 
-                        eSp.addAssists(coinsAdd, expAdd);
-                        notifyAssist(eSp.getPlayer(), killed, coinsAdd, expAdd, entry.getValue(), swpgpKilled.totalDamage); // 提示助攻
+                            eSp.addAssists(coinsAdd, expAdd);
+                            notifyAssist(eSp.getPlayer(), killed, coinsAdd, expAdd, entry.getValue(), swpgpKilled.totalDamage); // 提示助攻
+                        }
                     }
                 }
             }
+
 
         } else if (gameStatus == GameStatus.WAITING || gameStatus == GameStatus.STOPPED || gameStatus == GameStatus.RESETTING) {
             if (!quit) {
@@ -307,7 +312,7 @@ public class Game {
         if (getAlivePlayers().size() <= 1) {
             normalEnd();
         }
-        return ColorT.t("&7" + killed.getName() + " &e死了。");
+        return deathMessage;
     }
 
     private void normalEnd() {
@@ -439,6 +444,7 @@ public class Game {
     private void countdownAndAutoStart() {
         if (countdownTask == null || countdownTask.isCancelled()) {
             AtomicInteger time = new AtomicInteger(countdown);
+            setGameStatus(GameStatus.STARTING);
             countdownTask = new CTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
                 if (getAlivePlayers().size() < ConfigValues.mapConfigs.get(mapName).getMinPlayersToAutostart()) {
                     for (Player player : allPlayers) {
@@ -446,6 +452,7 @@ public class Game {
                         player.sendMessage(ColorT.t("&e倒计时取消 &c人数不足！至少需要 " + ConfigValues.mapConfigs.get(mapName).getMinPlayersToAutostart() + " 人"));
                     }
                     countdownTask.cancel();
+                    setGameStatus(GameStatus.WAITING);
                     return;
                 }
                 if (time.get() > 20 && time.get() % 10 == 0) {
