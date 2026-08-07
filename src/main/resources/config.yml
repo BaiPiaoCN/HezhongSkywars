@@ -30,7 +30,7 @@ database:
 
 coins:
   winAdd: 100 # 一局胜利游戏能获得的硬币
-  killAdd: 10 # 一局胜利游戏能获得的硬币
+  killAdd: 10 # 击杀一个玩家能获得的硬币
 
 exp:
   winAdd: 100 # 一局胜利游戏能获得的经验

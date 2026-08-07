@@ -89,6 +89,8 @@ public class ModifyCommand extends HezhongSkywarsCommand {
                     } else {
                         pp.sendMessage(ColorT.t("&c你选择的方块不是箱子，是 &e" + sp.getSetupMapStatus().getControllingBlock().getType()));
                     }
+                } else {
+                    pp.sendMessage(ColorT.t("&c请先右键选中一个方块！"));
                 }
             } else if (Objects.equals(opt, "rmChest")) {
                 if (sp.getSetupMapStatus().getControllingBlock() != null) {
@@ -99,6 +101,8 @@ public class ModifyCommand extends HezhongSkywarsCommand {
                     } else {
                         pp.sendMessage(ColorT.t("&c你选择的方块不是箱子，是 &e" + sp.getSetupMapStatus().getControllingBlock().getType()));
                     }
+                } else {
+                    pp.sendMessage(ColorT.t("&c请先右键选中一个方块！"));
                 }
             } else if (Objects.equals(opt, "listChest")) {
                 pp.sendMessage(ColorT.t("&a&l所有箱子"));

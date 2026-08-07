@@ -24,12 +24,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 public class GameManager {
     private final Plugin serverPlugin;
     @Getter
-    private final Map<String, Game> games = new HashMap<>();
+    private final Map<String, Game> games = new ConcurrentHashMap<>();
     @Getter
     private final QueueManager queueManager = new QueueManager();
     // K:V => 地图名 : 游戏实例

@@ -3,6 +3,7 @@ package com.hezhong.hezhongskywars.command;
 import com.hezhong.hezhongskywars.HezhongSkywars;
 import com.hezhong.hezhongskywars.events.HSWGameStartEvent;
 import com.hezhong.hezhongskywars.game.Game;
+import com.hezhong.hezhongskywars.game.GameStatus;
 import com.hezhong.hezhongskywars.manager.SwPlayerManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.utils.ColorT;
@@ -22,6 +23,11 @@ public class StartCommand extends HezhongSkywarsCommand {
             SwPlayer sp = SwPlayerManager.getPlayer(p);
             if (sp.getPlayingGame() != null) {
                 Game playing = sp.getPlayingGame();
+                GameStatus status = playing.getGameStatus();
+                if (status != GameStatus.WAITING && status != GameStatus.STARTING) {
+                    p.sendMessage(ColorT.t("&c当前游戏状态（" + status + "）无法手动开始！"));
+                    return;
+                }
                 HezhongSkywars.INSTANCE.getPlugin().getServer().getPluginManager().callEvent(new HSWGameStartEvent(playing.getMapName()));
                 p.sendMessage(ColorT.t("&a立即启动"));
             } else {

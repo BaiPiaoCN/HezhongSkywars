@@ -45,6 +45,11 @@ public class GUIListener implements Listener {
         HezhongSkywarsGUI gui = openGUIs.get(player.getUniqueId());
         if (gui != null && event.getView().getTopInventory().equals(gui.getInventory())) {
             openGUIs.remove(player.getUniqueId());
+        }
+        // 老逻辑gui == null就不清理previews了，而打开preview时gui必定为null
+        // 导致内存泄露
+        // 因此把逻辑挪到外面
+        if (previews.contains(event.getView().getTopInventory())) {
             previews.remove(event.getView().getTopInventory());
         }
     }

@@ -28,9 +28,13 @@ public class SelectKitCommand extends HezhongSkywarsCommand {
             if (sp.getPlayingGame() != null) {
                 // 在游戏中，允许选择职业
                 Game playing = sp.getPlayingGame();
-                if (ConfigValues.kitConfigs.containsKey(kitName) && sp.hasKit(kitName)) {
+                if (!ConfigValues.kitConfigs.containsKey(kitName)) {
+                    p.sendMessage(ColorT.t("&c职业不存在。"));
+                } else if (sp.hasKit(kitName)) {
                     playing.setPlayerKit(p, kitName);
                     p.sendMessage(ColorT.t("&a&l你选择了职业：" + kitName));
+                } else {
+                    p.sendMessage(ColorT.t("&c你还没有 &e" + kitName + " &c职业，请回大厅购买！"));
                 }
             } else {
                 if (ConfigValues.kitConfigs.containsKey(kitName)) {

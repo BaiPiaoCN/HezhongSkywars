@@ -73,12 +73,17 @@ public class JoinQuitListener implements Listener {
             HezhongSkywars.INSTANCE.getDatabase().writingPlayers.add(uuid);
 
             Bukkit.getScheduler().runTaskAsynchronously(HezhongSkywars.INSTANCE.getPlugin(), () -> {
-                if (data.REFRESHED) {
-                    HezhongSkywars.INSTANCE.getLogger().info("Saving data for " + uuid);
-                    HezhongSkywars.INSTANCE.getDatabase().setDatabaseStats(uuid, data);
-                    HezhongSkywars.INSTANCE.getDatabase().writingPlayers.remove(uuid);
-                    HezhongSkywars.INSTANCE.getLogger().info("Saved data for " + uuid);
-                } else {
+                try {
+                    if (data.REFRESHED) {
+                        HezhongSkywars.INSTANCE.getLogger().info("Saving data for " + uuid);
+                        HezhongSkywars.INSTANCE.getDatabase().setDatabaseStats(uuid, data);
+                        HezhongSkywars.INSTANCE.getLogger().info("Saved data for " + uuid);
+                    }
+                } catch (Exception e) {
+                    // 数据库写失败也要解除锁号，否则玩家再也进不来
+                    HezhongSkywars.INSTANCE.getLogger().severe("Failed to save data for " + uuid + ", data may be lost!");
+                    e.printStackTrace();
+                } finally {
                     HezhongSkywars.INSTANCE.getDatabase().writingPlayers.remove(uuid);
                 }
             });

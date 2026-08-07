@@ -109,8 +109,12 @@ public class GameListener implements Listener {
             Game playingGame = sp.getPlayingGame();
             if (playingGame != null) {
                 SwPlayingGamePlayer swpgp = playingGame.getPlayingPlayer(p.getUniqueId());
-                if (playingGame.getGameStatus() == GameStatus.PLAYING) {
-                    p.damage(10000);
+                if (swpgp.getStatus() == SwPlayingGamePlayer.PlayerStatus.ALIVE) {
+                    if (playingGame.getGameStatus() == GameStatus.PLAYING) {
+                        p.damage(10000);
+                    } else {
+                        p.teleport(playingGame.getWorld().getSpawnLocation());
+                    }
                 } else {
                     p.teleport(playingGame.getWorld().getSpawnLocation());
                 }

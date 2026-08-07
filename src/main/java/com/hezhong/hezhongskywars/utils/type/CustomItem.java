@@ -4,6 +4,7 @@ import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XPotion;
 import com.hezhong.hezhongskywars.utils.MathUtil;
+import lombok.EqualsAndHashCode;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
@@ -12,6 +13,7 @@ import org.bukkit.potion.PotionEffectType;
 import java.util.ArrayList;
 import java.util.List;
 
+@EqualsAndHashCode
 public final class CustomItem {
     private final XMaterial material;
     private final int count;

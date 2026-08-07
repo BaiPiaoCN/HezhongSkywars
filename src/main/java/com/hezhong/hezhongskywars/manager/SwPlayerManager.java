@@ -5,14 +5,14 @@ import lombok.Getter;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SwPlayerManager {
     // 管理所有玩家
 
-    private static final Map<UUID, SwPlayer> players =  new HashMap<>();
+    private static final Map<UUID, SwPlayer> players =  new ConcurrentHashMap<>();
 
     public static SwPlayer getPlayer(UUID uuid) {
         return players.getOrDefault(uuid, null);

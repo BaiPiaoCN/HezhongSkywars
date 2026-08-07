@@ -28,7 +28,7 @@ public class HubGUI extends HezhongSkywarsGUI {
     private final Map<Integer, Options> slotMap = new HashMap<>();
 
     public HubGUI(Player player, SwPlayer swPlayer) {
-        super(player, swPlayer, "&8选择职业", ROWS);
+        super(player, swPlayer, "&8主菜单", ROWS);
         build();
     }
 

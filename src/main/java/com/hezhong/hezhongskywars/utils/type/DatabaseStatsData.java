@@ -32,6 +32,7 @@ public class DatabaseStatsData {
     public int getInGameLevel() {
         // 直接靠经验计算等级
         int level = 1;
+        if (ConfigValues.levelNeedExps.isEmpty()) return level;
         if (exps >= ConfigValues.levelNeedExps.get(ConfigValues.levelNeedExps.size() - 1)) {
             return ConfigValues.levelNeedExps.size();
         }

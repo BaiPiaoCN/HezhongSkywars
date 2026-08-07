@@ -1,9 +1,5 @@
 package com.hezhong.hezhongskywars.game;
 
-import com.hezhong.hezhongskywars.config.ConfigValues;
-import com.hezhong.hezhongskywars.manager.SwPlayerManager;
-import com.hezhong.hezhongskywars.player.SwPlayer;
-import com.hezhong.hezhongskywars.utils.SimpleMath;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.Player;
@@ -32,8 +28,12 @@ public class SwPlayingGamePlayer {
     private Map<UUID, Double> damageByAttack = new HashMap<>();
     public double totalDamage; // 总伤害
 
-    public SwPlayingGamePlayer(Player pp) {
+    // 最开始就是旁观者
+    private final boolean asSpectator;
+
+    public SwPlayingGamePlayer(Player pp, boolean asSpectator) {
         this.player = pp;
+        this.asSpectator = asSpectator;
     }
 
     public void addDamage(UUID uuid, double dmg) {

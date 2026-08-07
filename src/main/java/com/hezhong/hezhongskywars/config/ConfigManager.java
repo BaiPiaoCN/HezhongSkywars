@@ -88,6 +88,7 @@ public class ConfigManager {
             ConfigValues.levelNeedExps.clear();
             ConfigValues.chestConfigs.clear();
             ConfigValues.mapConfigs.clear();
+            ConfigValues.kitConfigs.clear();
             // 负责真正读取配置信息
             ConfigValues.serverIp = ColorT.t(mainConfig.getString("basicInfo.serverIp"));
             ConfigValues.serverName = ColorT.t(mainConfig.getString("basicInfo.serverName"));

@@ -152,7 +152,11 @@ public class PlayerScoreBoardTask extends BukkitRunnable {
         // 动态注销Team，防止堆积
         // AI Coded™
         while (teams.size() > lines.length) {
-            Team team = teams.remove(teams.size() - 1);
+            int index = teams.size() - 1;
+            Team team = teams.remove(index);
+            // 只注销Team不够，Score会残留在Objective上造成幽灵行。
+            // 1.12没有Objective#resetScores，用Scoreboard#resetScores
+            scoreboard.resetScores(ENTRIES[index % ENTRIES.length]);
             team.unregister();
         }
 

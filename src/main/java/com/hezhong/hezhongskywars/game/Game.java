@@ -48,6 +48,7 @@ public class Game {
     // 游戏需要的Tasks
     private CTask countdownTask;
     private CTask eventRunnerTask;
+    private CTask checkIfNoPlayer;
 
     private final int countdown;
     private int countdownRemaining;
@@ -77,17 +78,24 @@ public class Game {
         // 对events，按照时间排序
         // 从小到大
         Collections.sort(events, Comparator.comparingInt(GameEvent::getTime));
+
+        checkIfNoPlayer = new CTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
+            if (gameStatus == GameStatus.PLAYING && getAlivePlayers().isEmpty()) {
+                normalEnd();
+            }
+        });
+        checkIfNoPlayer.runTimer(100, 0);
     }
 
     public boolean addPlayer(Player player) {
         // 必须设置SwPlayer状态。不能重复调用。
         if (gameStatus == GameStatus.WAITING || gameStatus == GameStatus.STARTING) {
-            if (allPlayers.size() >= maxPlayers) {
+            if (getAlivePlayers().size() >= maxPlayers) {
                 return false;
             }
             allPlayers.add(player);
             restoreHide(player);
-            playingPlayerStatus.put(player.getUniqueId(), new SwPlayingGamePlayer(player));
+            playingPlayerStatus.put(player.getUniqueId(), new SwPlayingGamePlayer(player, false));
             // 将玩家传送到出生点
             Location selectedLocation = selectSpawnPoint(player); // 选择出生点
             assert selectedLocation != null : "?";
@@ -111,9 +119,11 @@ public class Game {
         } else if (gameStatus == GameStatus.PLAYING || gameStatus == GameStatus.STOPPED) {
             // 中途进入，直接旁观
             if (!playingPlayerStatus.containsKey(player.getUniqueId())) {
-                playingPlayerStatus.put(player.getUniqueId(), new SwPlayingGamePlayer(player));
+                playingPlayerStatus.put(player.getUniqueId(), new SwPlayingGamePlayer(player, true));
             }
+            allPlayers.add(player);
             toSpectate(player);
+            player.teleport(world.getSpawnLocation());
         } else return false;
         return true;
     }
@@ -146,9 +156,8 @@ public class Game {
 
             SwPlayer sp = SwPlayerManager.getPlayer(player);
             sp.getStats().gamesPlayed++;
-
-            setGameStatus(GameStatus.PLAYING);
         }
+        setGameStatus(GameStatus.PLAYING);
         sendMessage("&c&l战斗！");
         gameEventRunner();
     }
@@ -289,7 +298,7 @@ public class Game {
             }
 
 
-        } else if (gameStatus == GameStatus.WAITING || gameStatus == GameStatus.STOPPED || gameStatus == GameStatus.RESETTING) {
+        } else if (gameStatus == GameStatus.WAITING || gameStatus == GameStatus.STARTING || gameStatus == GameStatus.STOPPED || gameStatus == GameStatus.RESETTING) {
             if (!quit) {
                 killed.spigot().respawn();
                 killed.teleport(location);
@@ -335,7 +344,9 @@ public class Game {
         // 按击杀数排序
         for (Player player : allPlayers) {
             SwPlayingGamePlayer swpgp = playingPlayerStatus.get(player.getUniqueId());
-            mostKilled.add(new Pair<>(swpgp.getKills(), player));
+            if (!swpgp.isAsSpectator()) {
+                mostKilled.add(new Pair<>(swpgp.getKills(), player));
+            }
         }
         // 从大到小排
         Collections.sort(mostKilled, Comparator.comparingInt(Pair::getX));
@@ -371,7 +382,7 @@ public class Game {
             @Override
             public void run() {
                 playSound(XSound.ENTITY_FIREWORK_ROCKET_SHOOT);
-                if (++count >= 20 || allPlayers.size() == 0) {
+                if (++count >= 20 || getAlivePlayers().isEmpty()) {
                     this.cancel();
                 }
             }
@@ -379,6 +390,16 @@ public class Game {
         fireworkTask.runTaskTimer(HezhongSkywars.INSTANCE.getPlugin(), 0, 20);
 
         Bukkit.getScheduler().runTaskLater(HezhongSkywars.INSTANCE.getPlugin(), () -> {
+            if (checkIfNoPlayer != null) {
+                checkIfNoPlayer.cancel();
+            }
+            if (countdownTask != null) {
+                countdownTask.cancel();
+            }
+            if (eventRunnerTask != null) {
+                eventRunnerTask.cancel();
+            }
+
             for (Player player : allPlayers) {
                 SwPlayer sp = SwPlayerManager.getPlayer(player);
                 sp.setPlayingGame(null);
