@@ -46,10 +46,7 @@ public class Game {
     private final List<GameEvent> eventsInFuture; // 还没执行的事件，[0]即下一个事件，用于计分板
     private String winnerName = "";
     // 游戏需要的Tasks
-    private CTask countdownTask;
-    private CTask eventRunnerTask;
-    private CTask checkIfNoPlayer;
-
+    private GameTaskManager taskManager;
     private final int countdown;
     private int countdownRemaining;
 
@@ -64,6 +61,7 @@ public class Game {
         this.spawns = new ArrayList<>();
         this.events = events;
         this.eventsInFuture = new ArrayList<>(events);
+        this.taskManager = new GameTaskManager(this);
         for (Location location : spawns) {
             Location newLocation = location.clone();
             newLocation.setX(location.getBlockX() + 0.5);
@@ -79,12 +77,12 @@ public class Game {
         // 从小到大
         Collections.sort(events, Comparator.comparingInt(GameEvent::getTime));
 
-        checkIfNoPlayer = new CTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
+        taskManager.setCheckIfNoPlayer(new CTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
             if (gameStatus == GameStatus.PLAYING && getAlivePlayers().isEmpty()) {
                 normalEnd();
             }
-        });
-        checkIfNoPlayer.runTimer(100, 0);
+        }));
+       taskManager.getCheckIfNoPlayer().runTimer(100, 0);
     }
 
     public boolean addPlayer(Player player) {
@@ -131,7 +129,7 @@ public class Game {
     public void startGame() {
         // 接收到了StartEvent，开始游戏
         countdownRemaining = 0;
-        if (countdownTask != null) countdownTask.cancel();
+        if (taskManager.getCountdownTask() != null) taskManager.getCountdownTask().cancel();
         refreshAllChests();
         for (Pair<Location, Player> spawn : spawns) {
             Location spawnLocation = spawn.getX();
@@ -390,15 +388,7 @@ public class Game {
         fireworkTask.runTaskTimer(HezhongSkywars.INSTANCE.getPlugin(), 0, 20);
 
         Bukkit.getScheduler().runTaskLater(HezhongSkywars.INSTANCE.getPlugin(), () -> {
-            if (checkIfNoPlayer != null) {
-                checkIfNoPlayer.cancel();
-            }
-            if (countdownTask != null) {
-                countdownTask.cancel();
-            }
-            if (eventRunnerTask != null) {
-                eventRunnerTask.cancel();
-            }
+            taskManager.stopAll();
 
             for (Player player : allPlayers) {
                 SwPlayer sp = SwPlayerManager.getPlayer(player);
@@ -462,16 +452,16 @@ public class Game {
     }
 
     private void countdownAndAutoStart() {
-        if (countdownTask == null || countdownTask.isCancelled()) {
+        if (taskManager.getCountdownTask() == null || taskManager.getCountdownTask().isCancelled()) {
             AtomicInteger time = new AtomicInteger(countdown);
             setGameStatus(GameStatus.STARTING);
-            countdownTask = new CTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
+            taskManager.setCountdownTask(new CTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
                 if (getAlivePlayers().size() < ConfigValues.mapConfigs.get(mapName).getMinPlayersToAutostart()) {
                     for (Player player : allPlayers) {
                         TitleAPI.sendTitle(player, 0, 60, 20, ColorT.t("&e倒计时取消"), ColorT.t("&c人数不足！至少需要 " + ConfigValues.mapConfigs.get(mapName).getMinPlayersToAutostart() + " 人"));
                         player.sendMessage(ColorT.t("&e倒计时取消 &c人数不足！至少需要 " + ConfigValues.mapConfigs.get(mapName).getMinPlayersToAutostart() + " 人"));
                     }
-                    countdownTask.cancel();
+                    taskManager.getCountdownTask().cancel();
                     setGameStatus(GameStatus.WAITING);
                     return;
                 }
@@ -493,17 +483,17 @@ public class Game {
                 }
                 if (time.get() == 0) {
                     Bukkit.getPluginManager().callEvent(new HSWGameStartEvent(mapName));
-                    countdownTask.cancel();
+                    taskManager.getCountdownTask().cancel();
                 }
                 countdownRemaining = time.get();
                 time.getAndDecrement();
-            });
-            countdownTask.runTimer(20, 0);
+            }));
+            taskManager.getCountdownTask().runTimer(20, 0);
         }
     }
 
     private void gameEventRunner() {
-        eventRunnerTask = new CTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
+       taskManager.setEventRunnerTask(new CTask(HezhongSkywars.INSTANCE.getPlugin(), () -> {
             runnedTime++;
             for (GameEvent e : events) {
                 if (e.getTime() == runnedTime) {
@@ -520,8 +510,8 @@ public class Game {
             for (Player p : allPlayers) {
                 p.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, Integer.MAX_VALUE, 1));
             }
-        });
-        eventRunnerTask.runTimer(20, 0);
+        }));
+        taskManager.getEventRunnerTask().runTimer(20, 0);
     }
 
     private void toSpectate(Player pp) {
