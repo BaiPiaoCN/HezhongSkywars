@@ -317,13 +317,20 @@ public class Game {
 
     private void normalEnd() {
         if (gameStatus != GameStatus.PLAYING) return;
+        setGameStatus(GameStatus.STOPPED);
+        if (getAlivePlayers().isEmpty()) {
+            HezhongSkywars.INSTANCE.getLogger().warning("Will Force reset game " + mapName + " after 20s, because of no player in game!");
+            Bukkit.getScheduler().runTaskLater(HezhongSkywars.INSTANCE.getPlugin(), () -> {
+                resetGame();
+            }, 20L * 20);
+            return;
+        }
         // 判断活人数量
         if (getAlivePlayers().size() > 1) {
             winnerName = "多个";
         } else {
             winnerName = getAlivePlayers().get(0).getName();
         }
-        setGameStatus(GameStatus.STOPPED);
         List<Pair<Integer, Player>> mostKilled = new ArrayList<>();
         // 按击杀数排序
         for (Player player : allPlayers) {
@@ -381,15 +388,7 @@ public class Game {
                 player.getInventory().setArmorContents(null);
                 player.teleport(Bukkit.getWorld(ConfigValues.lobbyWorld).getSpawnLocation());
             }
-            setGameStatus(GameStatus.RESETTING);
-            Bukkit.getScheduler().runTaskAsynchronously(HezhongSkywars.INSTANCE.getPlugin(), () -> {
-                try {
-                    HezhongSkywars.INSTANCE.getGameManager().resetGame(mapName);
-                } catch (Exception e) {
-                    HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to reset game");
-                    e.printStackTrace();
-                }
-            });
+            resetGame();
         }, 20 * 20);
     }
 
@@ -589,5 +588,16 @@ public class Game {
         this.gameStatus = gameStatus;
         HSWGameStatusChangeEvent changeEvent = new HSWGameStatusChangeEvent(this, gameStatus);
         Bukkit.getPluginManager().callEvent(changeEvent);
+    }
+    public void resetGame() {
+        setGameStatus(GameStatus.RESETTING);
+        Bukkit.getScheduler().runTaskAsynchronously(HezhongSkywars.INSTANCE.getPlugin(), () -> {
+            try {
+                HezhongSkywars.INSTANCE.getGameManager().resetGame(mapName);
+            } catch (Exception e) {
+                HezhongSkywars.INSTANCE.getLogger().warning("HSW Failed to reset game");
+                e.printStackTrace();
+            }
+        });
     }
 }

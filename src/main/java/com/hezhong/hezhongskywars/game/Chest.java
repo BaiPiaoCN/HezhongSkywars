@@ -26,7 +26,12 @@ public class Chest {
     }
     public void addChestItem(int prob, CustomItem item) {
         // 添加箱子物品，配置加载时使用
+        if (this.itemProbability.containsKey(item)) {
+            int rawProb = this.itemProbability.get(item);
+            this.itemProbability.put(item, rawProb + prob);
+        } else {
         this.itemProbability.put(item, prob);
+        }
         weightTotal += prob;
     }
     // 用于填充箱子，随机生成物品

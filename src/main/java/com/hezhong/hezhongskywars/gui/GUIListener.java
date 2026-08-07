@@ -45,7 +45,7 @@ public class GUIListener implements Listener {
         HezhongSkywarsGUI gui = openGUIs.get(player.getUniqueId());
         if (gui != null && event.getView().getTopInventory().equals(gui.getInventory())) {
             openGUIs.remove(player.getUniqueId());
-            previews.remove(event.getInventory());
+            previews.remove(event.getView().getTopInventory());
         }
     }
 

@@ -84,6 +84,10 @@ public class ConfigManager {
 
     private void resolveConfigValues() {
         try {
+            // 清空老配置
+            ConfigValues.levelNeedExps.clear();
+            ConfigValues.chestConfigs.clear();
+            ConfigValues.mapConfigs.clear();
             // 负责真正读取配置信息
             ConfigValues.serverIp = ColorT.t(mainConfig.getString("basicInfo.serverIp"));
             ConfigValues.serverName = ColorT.t(mainConfig.getString("basicInfo.serverName"));
@@ -100,6 +104,7 @@ public class ConfigManager {
 
             ConfigValues.multiWorldIndependentChat = mainConfig.getBoolean("multiWorld.independentChat");
             ConfigValues.multiWorldIndependentTab =  mainConfig.getBoolean("multiWorld.independentTab");
+
 
 
             // 数据库配置
