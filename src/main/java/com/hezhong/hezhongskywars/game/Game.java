@@ -301,12 +301,13 @@ public class Game {
                 killed.spigot().respawn();
                 killed.teleport(location);
             } else {
+                // Quit.
                 allPlayers.remove(killed);
                 playingPlayerStatus.remove(killed.getUniqueId());
                 // 解除出生点的占用
                 Pair<Location, Player> removingSpawn = null;
                 for (Pair<Location, Player> spawn : spawns) {
-                    if (spawn.getY().getUniqueId() == killed.getUniqueId()) {
+                    if (spawn.getY() != null && spawn.getY().getUniqueId() == killed.getUniqueId()) {
                         removingSpawn = spawn;
                         spawn.setY(null);
                         break;
@@ -372,8 +373,9 @@ public class Game {
         }
 
         // 烟花声庆祝
-        // 其实可用生成烟花，但这个先不搞，画个大饼先
+        // 其实可以生成烟花，但这个先不搞，画个大饼先
         // TODO: 生成烟花
+        // TODO: 把这个Task也统一管理了
         BukkitRunnable fireworkTask = new BukkitRunnable() {
             private int count = 0;
 

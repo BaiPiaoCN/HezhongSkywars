@@ -4,6 +4,7 @@ import com.hezhong.hezhongskywars.HezhongSkywars;
 import com.hezhong.hezhongskywars.events.HSWGameStartEvent;
 import com.hezhong.hezhongskywars.manager.SwPlayerManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
+import com.hezhong.hezhongskywars.utils.Permission;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,6 +20,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 public class GameListener implements Listener {
+    // TODO: 弹射物等的伤害追踪，追踪到damager
     @EventHandler
     public void onStart(HSWGameStartEvent e) {
         String mapName = e.getMapName();
@@ -39,7 +41,7 @@ public class GameListener implements Listener {
                 e.setCancelled(true);
             }
         } else {
-            if (!p.hasPermission("hsw.modifyMap")) {
+            if (!p.hasPermission(Permission.MODIFY_MAP.getNode())) {
                 e.setCancelled(true);
             }
         }
@@ -56,7 +58,7 @@ public class GameListener implements Listener {
                 e.setCancelled(true);
             }
         } else {
-            if (!p.hasPermission("hsw.modifyMap")) {
+            if (!p.hasPermission(Permission.MODIFY_MAP.getNode())) {
                 e.setCancelled(true);
             }
         }

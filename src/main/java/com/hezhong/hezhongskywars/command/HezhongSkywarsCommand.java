@@ -1,5 +1,6 @@
 package com.hezhong.hezhongskywars.command;
 
+import com.hezhong.hezhongskywars.utils.Permission;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
@@ -18,7 +19,7 @@ public abstract class HezhongSkywarsCommand {
 
     public boolean canExecute(CommandSender cs) {
         if (!permission) return true;
-        return cs.hasPermission("hsw.command." + commandName);
+        return cs.hasPermission(Permission.COMMAND.getNode() + "." + commandName);
     }
 
     public abstract void runCommand(CommandSender cs, Command command, String label, String[] args);
