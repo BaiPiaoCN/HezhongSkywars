@@ -21,10 +21,12 @@ import java.util.*;
 @Setter
 public class SwPlayer {
     private final Player player;
-    private DatabaseStatsData stats = null; // Null说明未加载
+    private DatabaseStatsData stats; // Null说明未加载
     private Game playingGame; // 玩家在什么游戏内，包括游玩和旁观。
-    private Scoreboard scoreBoard;
-    private Objective scoreBoardObjective;
+    private final Scoreboard scoreBoard;
+    private final Objective scoreBoardObjective;
+    private final PlayerScoreboard scoreBoardUpdater;
+
     private boolean settingUpMap = false;
     private String setUpMapName = ""; // 是游戏地图名，不是MC服务器世界名。取世界名需要读配置！
     private SwPlayerSetupMapStatus setupMapStatus = new SwPlayerSetupMapStatus();
@@ -39,11 +41,13 @@ public class SwPlayer {
     public SwPlayer(Player player) {
         this.player = player;
         stats = new DatabaseStatsData(this.player.getUniqueId(), this.player.getName());
+        // Scoreboard
         scoreBoard = Bukkit.getScoreboardManager().getNewScoreboard();
         scoreBoardObjective = scoreBoard.registerNewObjective("HSWScoreBoard", "dummy");
         scoreBoardObjective.setDisplayName(ConfigValues.serverName);
         scoreBoardObjective.setDisplaySlot(DisplaySlot.SIDEBAR);
         player.setScoreboard(scoreBoard);
+        scoreBoardUpdater = new PlayerScoreboard(this);
     }
 
     public boolean joinGame(Game g) {
@@ -101,7 +105,7 @@ public class SwPlayer {
         player.getInventory().setArmorContents(null);
         player.getInventory().setItem(0, SpecialItems.toPlay());
         player.getInventory().setItem(1, SpecialItems.mapSelector());
-        // [Space]
+        // 2: [Space]
         player.getInventory().setItem(3, SpecialItems.hubGUI());
         player.getInventory().setItem(4, SpecialItems.kitSelector());
 

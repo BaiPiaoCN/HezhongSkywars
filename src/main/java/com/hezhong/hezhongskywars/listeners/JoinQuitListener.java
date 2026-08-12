@@ -51,6 +51,7 @@ public class JoinQuitListener implements Listener {
 
 
         p.giveLobbyItems();
+        player.setGameMode(ConfigValues.defaultGameMode);
 
         ListenerManager.independentWorldManager.handlePostJoin(event);
 
@@ -60,7 +61,6 @@ public class JoinQuitListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         // 先处理游戏退出
         SwPlayer sp = SwPlayerManager.getPlayer(event.getPlayer());
-        PlayerScoreBoardTask.cleanPlayer(event.getPlayer());
         if (sp != null) {
             if (sp.getPlayingGame() != null) {
                 Game playing = sp.getPlayingGame();

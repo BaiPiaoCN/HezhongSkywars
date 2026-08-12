@@ -24,7 +24,7 @@ public class GUIListener implements Listener {
         gui.getOwner().openInventory(gui.getInventory());
     }
 
-    @EventHandler
+    @EventHandler (ignoreCancelled = false)
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         HezhongSkywarsGUI gui = openGUIs.get(player.getUniqueId());

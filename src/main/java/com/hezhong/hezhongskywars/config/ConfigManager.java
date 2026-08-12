@@ -10,6 +10,7 @@ import com.hezhong.hezhongskywars.utils.ColorT;
 import com.hezhong.hezhongskywars.utils.MathUtil;
 import com.hezhong.hezhongskywars.utils.type.CustomItem;
 import com.hezhong.hezhongskywars.utils.type.Pair;
+import org.bukkit.GameMode;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -93,6 +94,7 @@ public class ConfigManager {
             ConfigValues.serverIp = ColorT.t(mainConfig.getString("basicInfo.serverIp"));
             ConfigValues.serverName = ColorT.t(mainConfig.getString("basicInfo.serverName"));
             ConfigValues.lobbyWorld = mainConfig.getString("basicInfo.lobbyWorld");
+            ConfigValues.defaultGameMode = GameMode.valueOf(mainConfig.getString("basicInfo.defaultGameMode").toUpperCase());
 
             ConfigValues.coinsWinAdd = mainConfig.getInt("coins.winAdd");
             ConfigValues.coinsKillAdd = mainConfig.getInt("coins.killAdd");

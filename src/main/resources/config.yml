@@ -10,6 +10,8 @@ basicInfo:
   serverIp: "&eHezhong Technology" # 显示用的服务器地址，可填写字符串，解析颜色代码
   serverName: "&e&lExample" # 显示用，服务器名称，解析颜色代码
   lobbyWorld: "world" # 大厅世界
+
+  defaultGameMode: "adventure" # 大厅的默认游戏模式，可选survival/daventure/spectator/creative
 database:
   type: "sqlite" # sqlite / mysql
   
@@ -45,6 +47,7 @@ levels:
 multiWorld:
   independentChat: true # 独立每个世界的聊天
   independentTab: true # 独立每个世界的TAB列表
+
 
 
 

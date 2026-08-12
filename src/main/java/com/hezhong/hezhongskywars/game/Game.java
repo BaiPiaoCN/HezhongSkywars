@@ -36,6 +36,7 @@ public class Game {
     private final String mapName;
     private final World world;
     private final int maxPlayers;
+    private final int playersToAutostart;
     private GameStatus gameStatus;
     private List<Player> allPlayers;
     private Map<UUID, SwPlayingGamePlayer> playingPlayerStatus;
@@ -71,6 +72,7 @@ public class Game {
         }
         // maxPlayers
         maxPlayers = Math.min(spawns.size(), ConfigValues.mapConfigs.get(mapName).getMaxPlayers());
+        playersToAutostart = ConfigValues.mapConfigs.get(mapName).getMinPlayersToAutostart();
         countdown = ConfigValues.mapConfigs.get(mapName).getCountdown();
 
         // 对events，按照时间排序
@@ -107,10 +109,10 @@ public class Game {
             player.setGameMode(GameMode.SURVIVAL);
             ItemStack kitSelector = SpecialItems.kitSelector();
             player.getInventory().addItem(kitSelector);
-            ItemStack hubTeleportor = SpecialItems.lobbyTeleporter();
-            player.getInventory().setItem(8, hubTeleportor);
+            ItemStack hubTeleporter = SpecialItems.lobbyTeleporter();
+            player.getInventory().setItem(8, hubTeleporter);
 
-            if (getAlivePlayers().size() >= ConfigValues.mapConfigs.get(mapName).getMinPlayersToAutostart()) {
+            if (getAlivePlayers().size() >= playersToAutostart) {
                 // 准备开始
                 countdownAndAutoStart();
             }
@@ -260,7 +262,9 @@ public class Game {
                 toSpectate(killed);
                 // 直接默认返回值（亡语）
             } else if (quit) {
+                // Quit需要restoreHide+setAllowFlight
                 restoreHide(killed);
+                killed.setAllowFlight(false);
                 allPlayers.remove(killed);
                 if (swpgpKilled.getStatus() == SwPlayingGamePlayer.PlayerStatus.ALIVE) {
                     sp.getStats().deaths++;
@@ -302,8 +306,11 @@ public class Game {
                 killed.teleport(location);
             } else {
                 // Quit.
+                // Quit需要restoreHide+setAllowFlight
                 allPlayers.remove(killed);
                 playingPlayerStatus.remove(killed.getUniqueId());
+                restoreHide(killed);
+                killed.setAllowFlight(false);
                 // 解除出生点的占用
                 Pair<Location, Player> removingSpawn = null;
                 for (Pair<Location, Player> spawn : spawns) {
@@ -561,8 +568,11 @@ public class Game {
     private void restoreHide(Player p) {
         SwPlayer sp = SwPlayerManager.getPlayer(p);
         for (Player player : allPlayers) {
-            if (player != p)
+            if (player != p) {
                 sp.showPlayer(player);
+                SwPlayer sp2 = SwPlayerManager.getPlayer(player);
+                sp2.showPlayer(sp.getPlayer());
+            }
         }
     }
 

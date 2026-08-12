@@ -24,6 +24,7 @@ public class GeneralListener implements Listener {
 
         if (Objects.equals(player.getWorld().getName(), ConfigValues.lobbyWorld)) {
             player.setHealth(20);
+            player.setGameMode(ConfigValues.defaultGameMode);
 
             sp.giveLobbyItems();
         }

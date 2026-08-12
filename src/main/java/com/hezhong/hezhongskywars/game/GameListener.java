@@ -14,6 +14,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -191,6 +192,21 @@ public class GameListener implements Listener {
         } else {
             // 不在游戏中时，禁止丢去物品
             e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent e) {
+        if (!(e.getWhoClicked() instanceof Player player)) return;
+        Player p =  (Player) e.getWhoClicked();
+        SwPlayer sp = SwPlayerManager.getPlayer(p);
+        if (sp == null) return;
+        Game playingGame = sp.getPlayingGame();
+        if (playingGame != null) {
+            SwPlayingGamePlayer swpgp = playingGame.getPlayingPlayer(p.getUniqueId());
+            if (swpgp.getStatus() != SwPlayingGamePlayer.PlayerStatus.ALIVE) {
+                e.setCancelled(true);
+            }
         }
     }
 

@@ -1,5 +1,7 @@
 package com.hezhong.hezhongskywars.config;
 
+import org.bukkit.GameMode;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +13,7 @@ public class ConfigValues {
     public static String serverIp;
     public static String serverName;
     public static String lobbyWorld;
+    public static GameMode defaultGameMode;
     public static DataBaseConfig dataBaseConfig;
     public static Map<String, ChestConfig> chestConfigs = new HashMap<>(); // K:V type:config
     public static Map<String, MapConfig> mapConfigs = new HashMap<>(); // K:V mapName:config

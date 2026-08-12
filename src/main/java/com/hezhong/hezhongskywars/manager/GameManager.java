@@ -19,6 +19,7 @@ import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +34,7 @@ public class GameManager {
     private final Map<String, Game> games = new ConcurrentHashMap<>();
     @Getter
     private final QueueManager queueManager = new QueueManager();
+
     // K:V => 地图名 : 游戏实例
     public GameManager(Plugin serverPlugin) {
         this.serverPlugin = serverPlugin;
@@ -56,11 +58,12 @@ public class GameManager {
         });
 
     }
+
     public void resetGame(String mapName) throws FileNotFoundException {
         try {
             // 主线程执行会导致死锁主线程，绝对不能主线程执行
             if (Bukkit.isPrimaryThread()) {
-                HezhongSkywars.INSTANCE.getLogger().warning("HSW resetGame called from main thread!");
+                HezhongSkywars.INSTANCE.getLogger().severe("HSW resetGame called from main thread!");
                 return;
             }
             if (ConfigValues.mapConfigs.containsKey(mapName)) {
@@ -78,7 +81,7 @@ public class GameManager {
                     Bukkit.getScheduler().runTaskLater(HezhongSkywars.INSTANCE.getPlugin(), () -> {
                         // 如果不延迟的话，可能导致文件句柄不释放，导致重置异常
                         futureUnload.complete(true);
-                    }, 20); // 1s足矣
+                    }, 10);
                 });
                 futureUnload.join();
                 // 世界卸载后，复制一份地图
@@ -131,6 +134,7 @@ public class GameManager {
             e.printStackTrace();
         }
     }
+
     private void copyWorld(String original, String target) {
         // 必须确保世界已经卸载
         // 此代码必须异步执行
@@ -138,7 +142,9 @@ public class GameManager {
             // 删除世界
             File originalWorld = new File(serverPlugin.getDataFolder(), "maps/" + original);
             File targetWorld = new File(Bukkit.getWorldContainer(), target);
-            if (targetWorld.exists()) FileUtils.deleteDirectory(targetWorld);
+            if (targetWorld.exists()) {
+                deleteSafely(targetWorld, 10, 1000);
+            }
             FileUtils.copyDirectory(originalWorld, targetWorld);
             // 删session.lock
             File sessionLock = new File(targetWorld, "session.lock");
@@ -146,7 +152,7 @@ public class GameManager {
             if (sessionLock.exists()) {
                 FileUtils.delete(sessionLock);
             }
-            if  (uid.exists()) {
+            if (uid.exists()) {
                 FileUtils.delete(uid);
             }
         } catch (Exception e) {
@@ -155,5 +161,37 @@ public class GameManager {
         }
 
 
+    }
+
+    // 轮询删除
+    // 猎奇文件句柄你无敌了
+    private void deleteSafely(File file, int maxRetries, long delay) throws IOException {
+        for (int tried = 1; tried <= maxRetries; tried++) {
+            try {
+                if (file.isDirectory()) {
+                    FileUtils.deleteDirectory(file);
+                } else {
+                    FileUtils.forceDelete(file);
+                }
+                // 删了！
+                return;
+            } catch (IOException e) {
+                HezhongSkywars.INSTANCE.getLogger().warning(
+                        String.format("HSW Delete file %s failed, tried %d (max %d) %s",
+                                file.getName(), tried, maxRetries, e.getMessage())
+                );
+
+                if (tried == maxRetries) {
+                    throw e;
+                }
+
+                try {
+                    Thread.sleep(delay);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("Reset thread is interrupted?", ie);
+                }
+            }
+        }
     }
 }
