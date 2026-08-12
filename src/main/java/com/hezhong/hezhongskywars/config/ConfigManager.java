@@ -118,9 +118,11 @@ public class ConfigManager {
                 DataBaseType dbType = null;
                 dbType = DataBaseType.valueOf(dbTypeStr.toUpperCase());
 
-                // SQLite 配置
-                String sqliteFile = mainConfig.getString("database.sqlite.file");
-                String sqliteTablePrefix = mainConfig.getString("database.sqlite.table-prefix");
+                // H2 配置
+                String h2File = mainConfig.getString("database.h2.file");
+                String h2TablePrefix = mainConfig.getString("database.h2.table-prefix");
+                int h2MaxPoolSize = mainConfig.getInt("database.h2.max-pool-size");
+                int h2MinIdle = mainConfig.getInt("database.h2.min-idle");
 
                 // MySQL 配置
                 String mysqlHost = mainConfig.getString("database.mysql.host");
@@ -133,7 +135,7 @@ public class ConfigManager {
 
                 ConfigValues.dataBaseConfig = new DataBaseConfig(
                         dbType,
-                        sqliteFile, sqliteTablePrefix,
+                        h2File, h2TablePrefix, h2MaxPoolSize, h2MinIdle,
                         mysqlHost, mysqlPort, mysqlUser,
                         mysqlPassword, mysqlDatabase,
                         mysqlTablePrefix, mysqlReconnectTimeout
