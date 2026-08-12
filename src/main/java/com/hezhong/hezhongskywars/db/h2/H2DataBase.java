@@ -1,4 +1,4 @@
-package com.hezhong.hezhongskywars.db.sqlite;
+package com.hezhong.hezhongskywars.db.h2;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -6,7 +6,6 @@ import com.hezhong.hezhongskywars.db.IDataBase;
 import com.hezhong.hezhongskywars.utils.type.DatabaseStatsData;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.sql.*;
@@ -15,17 +14,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class SQLiteDataBase implements IDataBase {
+public class H2DataBase implements IDataBase {
     private final String databasePath;
     private final String tableNamePrefix;
+    private final int maxPoolSize;
+    private final int minIdle;
     private final Gson gson;
     private HikariDataSource dataSource;
 
-
     // 数据库文件路径
-    public SQLiteDataBase(String databasePath, String tableNamePrefix) {
+    public H2DataBase(String databasePath, String tableNamePrefix, int maxPoolSize, int minIdle) {
         this.databasePath = databasePath;
         this.tableNamePrefix = tableNamePrefix;
+        this.maxPoolSize = maxPoolSize;
+        this.minIdle = minIdle;
         this.gson = new GsonBuilder().create();
     }
 
@@ -40,24 +42,20 @@ public class SQLiteDataBase implements IDataBase {
             }
 
             HikariConfig config = new HikariConfig();
-            config.setDriverClassName("org.sqlite.JDBC");
-            String url = "jdbc:sqlite:" + databasePath;
+            config.setDriverClassName("org.h2.Driver");
+            String url = "jdbc:h2:file:" + dbFile.getAbsolutePath() + ";DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE";
             config.setJdbcUrl(url);
             config.setConnectionTimeout(5000L);
-            config.setMaximumPoolSize(4);
-            config.setMinimumIdle(1);
+            config.setMaximumPoolSize(maxPoolSize);
+            config.setMinimumIdle(minIdle);
             config.setIdleTimeout(300000L);
             config.setMaxLifetime(1800000L);
             config.setConnectionTestQuery("SELECT 1");
-            config.setPoolName("HezhongSW-SQLite-Pool");
-            // SQLite 连接属性
+            config.setPoolName("HezhongSW-H2-Pool");
             dataSource = new HikariDataSource(config);
 
             try (Connection connection = dataSource.getConnection();
                  Statement stmt = connection.createStatement()) {
-                stmt.execute("PRAGMA journal_mode=WAL");
-                stmt.execute("PRAGMA foreign_keys=ON");
-                stmt.execute("PRAGMA busy_timeout=5000");
                 String sql = "CREATE TABLE IF NOT EXISTS " + tableNamePrefix + "_stats (" +
                         "uuid VARCHAR(36) PRIMARY KEY, " +
                         "stats TEXT NOT NULL" +
@@ -65,7 +63,7 @@ public class SQLiteDataBase implements IDataBase {
                 stmt.executeUpdate(sql);
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to connect to SQLite database: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to connect to H2 database: " + e.getMessage(), e);
         }
     }
 
@@ -78,12 +76,12 @@ public class SQLiteDataBase implements IDataBase {
 
     @Override
     public String getUser() {
-        return ""; // SQLite 无需用户
+        return ""; // H2 无需用户
     }
 
     @Override
     public String getPassword() {
-        return ""; // SQLite 无需密码
+        return ""; // H2 无需密码
     }
 
     @Override
@@ -122,7 +120,7 @@ public class SQLiteDataBase implements IDataBase {
     @Override
     public void setDatabaseStats(UUID pp, DatabaseStatsData stats) {
         String json = gson.toJson(stats);
-        String sql = "INSERT OR REPLACE INTO " + tableNamePrefix + "_stats (uuid, stats) VALUES (?, ?)";
+        String sql = "MERGE INTO " + tableNamePrefix + "_stats (uuid, stats) KEY(uuid) VALUES (?, ?)";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, pp.toString());
@@ -135,7 +133,7 @@ public class SQLiteDataBase implements IDataBase {
 
     @Override
     public void setAllDatabaseStats(Map<UUID, DatabaseStatsData> allStats) {
-        String sql = "INSERT OR REPLACE INTO " + tableNamePrefix + "_stats (uuid, stats) VALUES (?, ?)";
+        String sql = "MERGE INTO " + tableNamePrefix + "_stats (uuid, stats) KEY(uuid) VALUES (?, ?)";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(sql)) {
             for (Map.Entry<UUID, DatabaseStatsData> entry : allStats.entrySet()) {

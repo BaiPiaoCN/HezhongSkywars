@@ -2,8 +2,8 @@ package com.hezhong.hezhongskywars.db;
 
 import com.hezhong.hezhongskywars.HezhongSkywars;
 import com.hezhong.hezhongskywars.config.ConfigValues;
+import com.hezhong.hezhongskywars.db.h2.H2DataBase;
 import com.hezhong.hezhongskywars.db.mysql.MySQLDataBase;
-import com.hezhong.hezhongskywars.db.sqlite.SQLiteDataBase;
 import com.hezhong.hezhongskywars.manager.SwPlayerManager;
 import com.hezhong.hezhongskywars.player.SwPlayer;
 import com.hezhong.hezhongskywars.utils.type.DatabaseStatsData;
@@ -29,8 +29,8 @@ public class DataBaseController {
 
     public DataBaseController() {
         DataBaseType type = ConfigValues.dataBaseConfig.getType();
-        if (type == DataBaseType.SQLITE) {
-            db = new SQLiteDataBase(ConfigValues.dataBaseConfig.getSqliteFile(), ConfigValues.dataBaseConfig.getSqliteTablePrefix());
+        if (type == DataBaseType.H2) {
+            db = new H2DataBase(ConfigValues.dataBaseConfig.getH2File(), ConfigValues.dataBaseConfig.getH2TablePrefix(), ConfigValues.dataBaseConfig.getH2MaxPoolSize(), ConfigValues.dataBaseConfig.getH2MinIdle());
         } else if (type == DataBaseType.MYSQL) {
             db = new MySQLDataBase(ConfigValues.dataBaseConfig.getMysqlHost(), ConfigValues.dataBaseConfig.getMysqlPort(), ConfigValues.dataBaseConfig.getMysqlUser(), ConfigValues.dataBaseConfig.getMysqlPassword(),
                     ConfigValues.dataBaseConfig.getMysqlDatabase(), ConfigValues.dataBaseConfig.getMysqlTablePrefix(), ConfigValues.dataBaseConfig.getMysqlReconnectTimeout());

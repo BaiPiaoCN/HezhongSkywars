@@ -8,9 +8,11 @@ public class DataBaseConfig {
 
     private final DataBaseType type;
 
-    // SQLite-specific config
-    private final String sqliteFile;
-    private final String sqliteTablePrefix;
+    // H2-specific config
+    private final String h2File;
+    private final String h2TablePrefix;
+    private final int h2MaxPoolSize;
+    private final int h2MinIdle;
 
     // MySQL-specific config
     private final String mysqlHost;
@@ -23,13 +25,15 @@ public class DataBaseConfig {
 
     public DataBaseConfig(
             DataBaseType type,
-            String sqliteFile, String sqliteTablePrefix,
+            String h2File, String h2TablePrefix, int h2MaxPoolSize, int h2MinIdle,
             String mysqlHost, int mysqlPort, String mysqlUser,
             String mysqlPassword, String mysqlDatabase,
             String mysqlTablePrefix, int mysqlReconnectTimeout) {
         this.type = type;
-        this.sqliteFile = sqliteFile;
-        this.sqliteTablePrefix = sqliteTablePrefix;
+        this.h2File = h2File;
+        this.h2TablePrefix = h2TablePrefix;
+        this.h2MaxPoolSize = h2MaxPoolSize;
+        this.h2MinIdle = h2MinIdle;
         this.mysqlHost = mysqlHost;
         this.mysqlPort = mysqlPort;
         this.mysqlUser = mysqlUser;
